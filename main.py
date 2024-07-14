@@ -1,10 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import json
 
 app = FastAPI()
 
 origins = [
     "http://localhost:5173",
+    "https://fp-client-107bc916594c.herokuapp.com/",
     "https://fp-client-107bc916594c.herokuapp.com"
     ]
 
@@ -19,4 +21,7 @@ app.add_middleware(
 
 @app.get('/events')
 def events():
-    return ["event42", "event69", "event007"]
+    # Read JSON data from the file
+    with open('events.json') as json_file:
+        data = json.load(json_file)
+    return data

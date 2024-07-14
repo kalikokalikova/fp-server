@@ -1,0 +1,41 @@
+[
+    {
+        "event_id": 1,
+        "title": "the first event",
+        "description": "something really fun",
+        "starttime": "2024-03-30 17:25:00",
+        "endtime": "2024-03-30 20:00:00",
+        "location_name": "My house",
+        "is_public": true,
+        "image_url": "the-image-lives-here",
+        "owner_id": 10,
+        "first_name": "Calico",
+        "last_name": "Seders"
+    },
+    {
+        "event_id": 2,
+        "title": "the second event",
+        "description": "something really fun",
+        "starttime": "2024-03-30 17:25:00",
+        "endtime": "2024-03-30 20:00:00",
+        "location_name": "My house",
+        "is_public": true,
+        "image_url": "the-image-lives-here",
+        "owner_id": 10,
+        "first_name": "Calico",
+        "last_name": "Seders"
+    },
+    {
+        "event_id": 3,
+        "title": "the third event",
+        "description": "something really fun",
+        "starttime": "2024-03-30 17:25:00",
+        "endtime": "2024-03-30 20:00:00",
+        "location_name": "My house",
+        "is_public": true,
+        "image_url": "the-image-lives-here",
+        "owner_id": 10,
+        "first_name": "Calico",
+        "last_name": "Seders"
+    }
+]
