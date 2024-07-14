@@ -5,6 +5,7 @@ app = FastAPI()
 
 origins = [
     "http://localhost:5173",
+    "https://fp-client-107bc916594c.herokuapp.com/"
 ]
 
 app.add_middleware(
