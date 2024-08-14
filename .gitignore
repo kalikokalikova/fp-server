@@ -70,3 +70,11 @@ venv.bak/
 
 # external libraries and dependencies
 /lib/
+
+# Ignore compiled bytecode
+__pycache__/
+
+# Ignore the virtual environment directory
+../fp-venv/
+
+.DS_Store
