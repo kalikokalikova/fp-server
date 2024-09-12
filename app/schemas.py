@@ -1,11 +1,12 @@
 # This is for data validation
+from typing import Union, Optional
+from datetime import datetime as dt
 from pydantic import BaseModel
-from datetime import datetime
 
 class EventBase(BaseModel):
     title : str
     description : str | None = None
-    datetime: datetime
+    datetime: dt
     location_name: str | None = None
     is_public: bool
     image_url: str
@@ -13,6 +14,14 @@ class EventBase(BaseModel):
 
 class EventCreate(EventBase):
     pass
+
+class EventUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    datetime: Optional[dt] = None 
+    location_name: Optional[str] = None
+    is_public: Optional[bool] = None
+    image_url: Optional[str] = None    
 
 
 class Event(EventBase):
