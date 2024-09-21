@@ -16,6 +16,7 @@ class Event(Base):
     __tablename__ = "events"
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(255), index=True)
+    hostname = Column(String(255))
     description = Column(String(500), index=True)
     startDateTime = Column(DateTime)
     endDateTime = Column(DateTime)
@@ -26,3 +27,4 @@ class Event(Base):
     email = Column(String(255), nullable=True)
     allowQA = Column(Boolean, default=True)
     phone = Column(String(15), nullable=True)
+    slug = Column(String(255), unique=True, nullable=False, index=True)

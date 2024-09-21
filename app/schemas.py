@@ -7,6 +7,7 @@ class EventBase(BaseModel):
     #add: end time (optional - could it be a string? eg "we'll be there until the mosquitoes get too bad!"), 
     #   host name, slug?, should location name & location address be two different things?
     title : str
+    hostname : str
     description : Optional[str] = None
     startDateTime: dt
     endDateTime: Optional[dt]
@@ -39,11 +40,14 @@ class EventCreate(EventBase):
 
 class EventUpdate(BaseModel):
     title: Optional[str] = None
+    #does changing the title change the slug? 
+    #if yes, do we maintain redirects?
     description: Optional[str] = None
-    datetime: Optional[dt] = None 
-    location_name: Optional[str] = None
-    is_public: Optional[bool] = None
-    image_url: Optional[str] = None    
+    startDateTime: Optional[dt] = None 
+    location: Optional[str] = None
+    isShareable: Optional[bool] = None
+    image_url: Optional[str] = None
+    slug: Optional[str] = None
 
 
 class Event(EventBase):
