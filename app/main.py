@@ -1,10 +1,9 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, status, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 import app.crud as crud, app.models as models, app.schemas as schemas
 from app.database import SessionLocal, engine, Base
-import json
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -33,7 +32,7 @@ def get_db():
         db.close()
 
 # GETS
-@app.get("/api/v1/events?", response_model=list[schemas.Event], status_code=status.HTTP_200_OK)
+@app.get("/api/v1/events/", response_model=list[schemas.Event], status_code=status.HTTP_200_OK)
 def get_events(skip:int=0,limit:int=100,db:Session=Depends(get_db)):
     try: 
         events = crud.get_events(db,skip=skip,limit=limit)
@@ -50,7 +49,7 @@ def get_events(skip:int=0,limit:int=100,db:Session=Depends(get_db)):
     
     except Exception as e:
         #do we want to log errors?
-        #print(f"Error fetching events: {e}")
+        print(f"Error fetching events: {e}")
         return JSONResponse(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 content={
@@ -61,8 +60,8 @@ def get_events(skip:int=0,limit:int=100,db:Session=Depends(get_db)):
             )
 
 @app.get("/api/v1/events/{event_slug}", response_model=schemas.Event, status_code=status.HTTP_200_OK)
-#eventually: 401 unauthorized?
-def get_event_by_id(event_slug: str, event_id: int, db: Session = Depends(get_db)):
+def get_event_by_id(event_id: int, db: Session = Depends(get_db)):
+    #eventually: 401 unauthorized?
     try: 
         #check if valid event_id
         if event_id <= 0:
@@ -101,11 +100,11 @@ def get_event_by_id(event_slug: str, event_id: int, db: Session = Depends(get_db
 
 
 # POSTS
-@app.post("/api/v1/events?",response_model=schemas.Event, status_code=status.HTTP_200_OK)
-def post_event(event:schemas.EventCreate, db:Session=Depends(get_db)):
-    try: 
+@app.post("/api/v1/events/", response_model=schemas.Event, status_code=status.HTTP_201_CREATED)
+def post_event(event:schemas.EventCreate = Body(...), db: Session=Depends(get_db)):
+    try:
         #eventually: authentication check?
-        #if not authorized_user():  # Assume this function checks authorization
+        #if not authorized_user(): 
         #    return JSONResponse(
         #        status_code=status.HTTP_401_UNAUTHORIZED,
         #        content={
@@ -114,8 +113,7 @@ def post_event(event:schemas.EventCreate, db:Session=Depends(get_db)):
         #            "message": "Unauthorized access"
         #        }
         #    )
-        if not event.name or event.start_date is None:
-        #which validations will happen on the front end? which fields are required?
+        if not event.title or event.startDateTime is None:
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content={
@@ -127,18 +125,10 @@ def post_event(event:schemas.EventCreate, db:Session=Depends(get_db)):
         
         created_event = crud.create_event(db=db, event=event)
 
-        return JSONResponse(
-            status_code=status.HTTP_201_CREATED,
-            content={
-                "status": 201,
-                "error": False,
-                "message": "Event successfully created",
-                "data": created_event
-            }
-        )
+        return created_event
     
     except Exception as e:
-        #logging?
+        print(f"Error while creating event: {e}")
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={
@@ -149,7 +139,7 @@ def post_event(event:schemas.EventCreate, db:Session=Depends(get_db)):
         )
 
 # PATCHES
-@app.patch("/api/v1/events?", response_model=schemas.Event, status_code=status.HTTP_200_OK)
+@app.patch("/api/v1/events/", response_model=schemas.Event, status_code=status.HTTP_200_OK)
 def update_event(event_id: int, event_data: schemas.EventUpdate, db: Session = Depends(get_db)):
     try:
         #authentication placeholders

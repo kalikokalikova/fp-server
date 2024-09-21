@@ -79,3 +79,8 @@ __pycache__/
 ../fp-venv/
 
 .DS_Store
+
+
+#testing, don't commit yet
+alembic.ini
+alembic/
