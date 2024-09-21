@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 import app.crud as crud, app.models as models, app.schemas as schemas
 from app.database import SessionLocal, engine, Base
@@ -32,38 +33,249 @@ def get_db():
         db.close()
 
 # GETS
-@app.get("/events/", response_model=list[schemas.Event], status_code=status.HTTP_200_OK)
+@app.get("/api/v1/events?", response_model=list[schemas.Event], status_code=status.HTTP_200_OK)
 def get_events(skip:int=0,limit:int=100,db:Session=Depends(get_db)):
-    events = crud.get_events(db,skip=skip,limit=limit)
-    if not events:
-        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail="No events found")
-        #better to return an empty list or a "no events found"? what did we decide about remote events?
-    return events
+    try: 
+        events = crud.get_events(db,skip=skip,limit=limit)
+        if not events:
+            return JSONResponse(
+                status_code=status.HTTP_204_NO_CONTENT,
+                content={
+                    "status": 204,
+                    "error": True,
+                    "message": "No events found"
+                }
+            )
+        return events
+    
+    except Exception as e:
+        #do we want to log errors?
+        #print(f"Error fetching events: {e}")
+        return JSONResponse(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                content={
+                    "status": 500,
+                    "error": True,
+                    "message": "An unexpected error occurred"
+                }
+            )
 
-@app.get("/events/{event_id}", response_model=schemas.Event, status_code=status.HTTP_200_OK)
-def get_event_by_id(event_id: int, db: Session = Depends(get_db)):
-    event = crud.get_event_by_id(db=db, event_id=event_id)
-    if event is None:
-        raise HTTPException(status_code=404, detail="Event not found")
-    return event
+@app.get("/api/v1/events/{event_slug}", response_model=schemas.Event, status_code=status.HTTP_200_OK)
+#eventually: 401 unauthorized?
+def get_event_by_id(event_slug: str, event_id: int, db: Session = Depends(get_db)):
+    try: 
+        #check if valid event_id
+        if event_id <= 0:
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={
+                    "status": 400,
+                    "error": True,
+                    "message": "Invalid event ID provided"
+                }
+            )
+
+        event = crud.get_event_by_id(db=db, event_id=event_id)
+        if event is None:
+            return JSONResponse(
+                status_code=status.HTTP_404_NOT_FOUND,
+                content={
+                    "status": 404,
+                    "error": True,
+                    "message": "Event not found"
+                }  
+            )
+        return event
+    
+    except Exception as e:
+        #do we want to log errors?
+        #print(f"Error fetching events: {e}")
+        return JSONResponse(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                content={
+                    "status": 500,
+                    "error": True,
+                    "message": "An unexpected error occurred"
+                }
+            )
+
 
 # POSTS
-@app.post("/events/",response_model=schemas.Event, status_code=status.HTTP_201_CREATED)
+@app.post("/api/v1/events?",response_model=schemas.Event, status_code=status.HTTP_200_OK)
 def post_event(event:schemas.EventCreate, db:Session=Depends(get_db)):
-    return crud.create_event(db=db, event=event)
+    try: 
+        #eventually: authentication check?
+        #if not authorized_user():  # Assume this function checks authorization
+        #    return JSONResponse(
+        #        status_code=status.HTTP_401_UNAUTHORIZED,
+        #        content={
+        #            "status": 401,
+        #            "error": True,
+        #            "message": "Unauthorized access"
+        #        }
+        #    )
+        if not event.name or event.start_date is None:
+        #which validations will happen on the front end? which fields are required?
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={
+                    "status": 400,
+                    "error": True,
+                    "message": "Missing required event fields"
+                }
+            )
+        
+        created_event = crud.create_event(db=db, event=event)
+
+        return JSONResponse(
+            status_code=status.HTTP_201_CREATED,
+            content={
+                "status": 201,
+                "error": False,
+                "message": "Event successfully created",
+                "data": created_event
+            }
+        )
+    
+    except Exception as e:
+        #logging?
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={
+                "status": 500,
+                "error": True,
+                "message": "An unexpected error occurred while creating the event"
+            }
+        )
 
 # PATCHES
-@app.patch("/events/{event_id}", response_model=schemas.Event, status_code=status.HTTP_200_OK)
+@app.patch("/api/v1/events?", response_model=schemas.Event, status_code=status.HTTP_200_OK)
 def update_event(event_id: int, event_data: schemas.EventUpdate, db: Session = Depends(get_db)):
-    event = crud.update_event(db=db, event_id=event_id, event_data=event_data)
-    if event is None:
-        raise HTTPException(status_code=404, detail="Event not found")
-    return event
+    try:
+        #authentication placeholders
+        #if not authorized_user():
+        #    return JSONResponse(
+        #        status_code=status.HTTP_401_UNAUTHORIZED,
+        #        content={
+        #            "status": 401,
+        #            "error": True,
+        #            "message": "Unauthorized access"
+        #        }
+        #    )
+        #if not authorized_to_update(event_id): 
+        #    return JSONResponse(
+        #        status_code=status.HTTP_403_FORBIDDEN,
+        #        content={
+        #            "status": 403,
+        #            "error": True,
+        #            "message": "You do not have permission to update this event"
+        #        }
+        #    )
+
+        if not event_data or not isinstance(event_data, schemas.EventUpdate):
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={
+                    "status": 400,
+                    "error": True,
+                    "message": "Invalid event data"
+                }
+            )
+        
+        event = crud.update_event(db=db, event_id=event_id, event_data=event_data)
+
+        if event is None:
+            return JSONResponse(
+                status_code=status.HTTP_404_NOT_FOUND,
+                content={
+                    "status": 404,
+                    "error": True,
+                    "message": "Event not found"
+                }
+            )
+        
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "status": 200,
+                "error": False,
+                "message": "Event successfully updated",
+                "data": event
+            }
+        )        
+
+    except Exception as e:
+        # 500 Internal Server Error: Catch any unexpected server-side errors
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={
+                "status": 500,
+                "error": True,
+                "message": "An error occurred while updating the event"
+            }
+        )
 
 # DELETES
-@app.delete("/events/{event_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
+@app.delete("/api/v1/events?", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
 def delete_event(event_id: int, db: Session = Depends(get_db)):
-    event = crud.delete_event(db=db, event_id=event_id)
-    if event is None:
-        raise HTTPException(status_code=404, detail="Event not found")
-    return {"message": "Event deleted successfully"}
+    try: 
+        #authentication placeholders
+        #if not authorized_user():
+        #    return JSONResponse(
+        #        status_code=status.HTTP_401_UNAUTHORIZED,
+        #        content={
+        #            "status": 401,
+        #            "error": True,
+        #            "message": "Unauthorized access"
+        #        }
+        #    )
+        #if not authorized_to_update(event_id): 
+        #    return JSONResponse(
+        #        status_code=status.HTTP_403_FORBIDDEN,
+        #        content={
+        #            "status": 403,
+        #            "error": True,
+        #            "message": "You do not have permission to update this event"
+        #        }
+        #    )
+        if event_id <= 0:
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={
+                    "status": 400,
+                    "error": True,
+                    "message": "Invalid event ID provided"
+                }
+            )
+
+        event = crud.delete_event(db=db, event_id=event_id)
+
+        if event is None:
+            return JSONResponse(
+                status_code=status.HTTP_404_NOT_FOUND,
+                content={
+                    "status": 404,
+                    "error": True,
+                    "message": "Event not found"
+                }
+            )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "status": 200,
+                "error": False,
+                "message": "Deleted event"
+            }
+        )
+    
+    except Exception as e:
+        # 500 Internal Server Error: Catch any unexpected server-side errors
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={
+                "status": 500,
+                "error": True,
+                "message": "An error occurred while deleting the event"
+            }
+        )
