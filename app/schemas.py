@@ -1,5 +1,5 @@
 # This is for data validation
-from typing import Union, Optional
+from typing import Union, Optional, List
 from datetime import datetime as dt
 from pydantic import BaseModel, EmailStr
 
@@ -67,6 +67,27 @@ class EventResponse(BaseModel):
     endDateTime: Optional[dt] = None
     location: Optional[str] = None
     owner_id: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+
+class AnswerResponse(BaseModel):
+    id: int
+    content: str
+
+    class Config: 
+        orm_mode = True
+
+class QuestionResponse(BaseModel):
+    id: int
+    content: str
+    answers: List[AnswerResponse] = []
+
+    class config:
+        orm_mode = True
+
+class EventWithQAResponse(EventResponse): 
+    questions: List[QuestionResponse] = []
 
     class Config:
         orm_mode = True
