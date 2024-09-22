@@ -20,9 +20,9 @@ class Event(Base):
     description = Column(String(500), index=True)
     startDateTime = Column(DateTime)
     endDateTime = Column(DateTime)
-    location = Column(String(255))
+    location = Column(String(255)) #str for now, object later
     isShareable = Column(Boolean)
-    image_url = Column(String(255))
+    image_url = Column(String(255)) 
     owner_id = Column(Integer)
     email = Column(String(255), nullable=True)
     allowQA = Column(Boolean, default=True)

@@ -98,21 +98,16 @@ def get_event_by_id(event_id: int, db: Session = Depends(get_db)):
                 }
             )
 
-
 # POSTS
 @app.post("/api/v1/events/", response_model=schemas.Event, status_code=status.HTTP_201_CREATED)
 def post_event(event:schemas.EventCreate = Body(...), db: Session=Depends(get_db)):
     try:
-        #eventually: authentication check?
-        #if not authorized_user(): 
-        #    return JSONResponse(
-        #        status_code=status.HTTP_401_UNAUTHORIZED,
-        #        content={
-        #            "status": 401,
-        #            "error": True,
-        #            "message": "Unauthorized access"
-        #        }
-        #    )
+        #eventually: authentication check
+        #if logged in then
+        #if create new account then
+        ##check if actually existing
+        #else create w/o user_id
+
         if not event.title or event.startDateTime is None:
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -122,8 +117,15 @@ def post_event(event:schemas.EventCreate = Body(...), db: Session=Depends(get_db
                     "message": "Missing required event fields"
                 }
             )
+
+        if isinstance(event.location, dict): #if API call successful and passed as dict
+            location_name = event.location.get('location')
+            location_address = event.location.get('address')
+        else: 
+            location_name = event.location
+            location_address = None
         
-        created_event = crud.create_event(db=db, event=event)
+        created_event = crud.create_event(db=db, event=event) #location_name=location_name, location_address=location_address
 
         return created_event
     

@@ -23,7 +23,21 @@ def create_event(db:Session, event:schemas.EventCreate):
         existing_event = db.query(models.Event).filter(models.Event.slug == slug).first()
         count += 1
 
-    db_event = models.Event(**event.model_dump(), slug=slug)
+    #if location ID (aka successful places API response)
+    #then check locations table for existing
+    #location = db.query(models.Location).filter_by(fk_id=fk_id)
+    #add if not
+        #location = models.Location(name=location_name, address=location_address)
+        #db.add(location)
+        #db.commit()
+        #db.refresh(location)
+        #location_id=location.id
+    #if location string only
+    #check locations table for existing? probably yes
+    #location = db.query(models.Location).filter_by(name=location_name)
+    #add if not
+
+    db_event = models.Event(**event.model_dump(), slug=slug) #logic for user ID, location ID
     db.add(db_event)
     db.commit()
     db.refresh(db_event)

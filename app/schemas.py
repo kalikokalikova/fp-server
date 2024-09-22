@@ -4,25 +4,24 @@ from datetime import datetime as dt
 from pydantic import BaseModel, EmailStr
 
 class EventBase(BaseModel):
-    #add: end time (optional - could it be a string? eg "we'll be there until the mosquitoes get too bad!"), 
-    #   host name, slug?, should location name & location address be two different things?
     title : str
-    hostname : str
+    hostname : Optional[str] = None
     description : Optional[str] = None
     startDateTime: dt
-    endDateTime: Optional[dt]
-    #validation: must be after start time
+    endDateTime: Optional[dt] = None
     location: Optional[str] = None
     isShareable: bool
     allowQA: bool
     image_url: Optional[str] = None
-    email: Optional[EmailStr]
-    phone: Optional[str]
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    owner_id: Optional[str] = None
 
     class Config: 
         json_schema_extra = {
             "example": {
-                "title": "Community Picnic",
+                "title": "a title",
+                "hostname": "my name",
                 "description": "A local picnic with games and food.",
                 "startDateTime": "2024-09-25T10:00:00Z",
                 "endDateTime": "2024-09-25T14:00:00Z",
@@ -30,8 +29,8 @@ class EventBase(BaseModel):
                 "isShareable": True,
                 "allowQA": True,
                 "image_url": "",
-                "email": "foo@example.com",
-                "phone": ""
+                "email": "example@foo.com",
+                "phone": "9999999999"
             }
         }
 
