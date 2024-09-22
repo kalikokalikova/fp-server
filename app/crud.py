@@ -11,6 +11,7 @@ def get_event_by_id(db: Session, event_id: int):
     return db.query(models.Event).filter(models.Event.id == event_id).first()
 
 def create_event(db:Session, event:schemas.EventCreate):
+    slug = slugify(event.title)
     #if location ID (aka successful places API response)
     #then check locations table for existing
     #location = db.query(models.Location).filter_by(fk_id=fk_id)
@@ -25,17 +26,12 @@ def create_event(db:Session, event:schemas.EventCreate):
     #location = db.query(models.Location).filter_by(name=location_name)
     #add if not
 
-    db_event = models.Event(**event.model_dump(), slug=None) # later add logic for user ID, location ID
+    db_event = models.Event(**event.model_dump(), slug=slug) # later add logic for user ID, location ID
 
     db.add(db_event)
     db.commit()
     db.refresh(db_event)
 
-    slug = f"{slugify(event.title)}--{db_event.id}"
-
-    db_event.slug = slug
-    db.commit()
-    
     return db_event
 
 def update_event(db: Session, event_id: int, event_data: schemas.EventUpdate):
