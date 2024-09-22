@@ -59,8 +59,8 @@ def get_events(skip:int=0,limit:int=100,db:Session=Depends(get_db)):
                 }
             )
 
-@app.get("/api/v1/events/{event_slug}", response_model=schemas.Event, status_code=status.HTTP_200_OK)
-def get_event_by_id(event_id: int, db: Session = Depends(get_db)):
+@app.get("/api/v1/events/{event_id}/{event_slug}", response_model=schemas.Event, status_code=status.HTTP_200_OK)
+def get_event_by_id(event_id: int, event_slug: str, db: Session = Depends(get_db)):
     #eventually: 401 unauthorized?
     try: 
         #check if valid event_id

@@ -7,7 +7,7 @@ def get_events(db: Session, skip:int=0, limit: int=100):
     return db.query(models.Event).offset(skip).limit(limit).all()
 
 def get_event_by_id(db: Session, event_id: int):
-    #permit get by slug? what if slug is changed?
+#slug included in URL & is a required parameter but could be anything. only ID matters
     return db.query(models.Event).filter(models.Event.id == event_id).first()
 
 def create_event(db:Session, event:schemas.EventCreate):
