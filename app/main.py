@@ -32,7 +32,7 @@ def get_db():
         db.close()
 
 # GETS
-@app.get("/api/v1/events/", response_model=list[schemas.Event], status_code=status.HTTP_200_OK)
+@app.get("/api/v1/events/", response_model=list[schemas.EventResponse], status_code=status.HTTP_200_OK)
 def get_events(skip:int=0,limit:int=100,db:Session=Depends(get_db)):
     try: 
         events = crud.get_events(db,skip=skip,limit=limit)
@@ -59,7 +59,7 @@ def get_events(skip:int=0,limit:int=100,db:Session=Depends(get_db)):
                 }
             )
 
-@app.get("/api/v1/events/{event_id}/{event_slug}", response_model=schemas.Event, status_code=status.HTTP_200_OK)
+@app.get("/api/v1/events/{event_id}/{event_slug}", response_model=schemas.EventResponse, status_code=status.HTTP_200_OK)
 def get_event_by_id(event_id: int, event_slug: str, db: Session = Depends(get_db)):
     #eventually: 401 unauthorized?
     try: 

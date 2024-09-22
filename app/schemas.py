@@ -39,10 +39,8 @@ class EventCreate(EventBase):
 
 class EventUpdate(BaseModel):
     title: Optional[str] = None
-    #does changing the title change the slug? 
-    #if yes, do we maintain redirects?
     description: Optional[str] = None
-    startDateTime: Optional[dt] = None 
+    startDateTime: Optional[dt] = None
     location: Optional[str] = None
     isShareable: Optional[bool] = None
     image_url: Optional[str] = None
@@ -50,8 +48,25 @@ class EventUpdate(BaseModel):
 
 
 class Event(EventBase):
-    id : int
+    title : str
+    hostname : Optional[str] = None
+    description : Optional[str] = None
+    startDateTime: dt
+    endDateTime: Optional[dt] = None
+    location: Optional[str] = None
+    owner_id: Optional[str] = None
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
+class EventResponse(BaseModel):
+    title : str
+    hostname : Optional[str] = None
+    description : Optional[str] = None
+    startDateTime: dt
+    endDateTime: Optional[dt] = None
+    location: Optional[str] = None
+    owner_id: Optional[str] = None
+
+    class Config:
+        orm_mode = True
