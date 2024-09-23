@@ -46,7 +46,6 @@ class EventUpdate(BaseModel):
     image_url: Optional[str] = None
     slug: Optional[str] = None
 
-
 class Event(EventBase):
     title : str
     hostname : Optional[str] = None
@@ -72,21 +71,26 @@ class EventResponse(BaseModel):
         orm_mode = True
 
 class AnswerResponse(BaseModel):
-    id: int
-    content: str
+    answer: str
 
     class Config: 
         orm_mode = True
 
 class QuestionResponse(BaseModel):
-    id: int
-    content: str
+    question: str
     answers: List[AnswerResponse] = []
 
-    class config:
+    class Config:
         orm_mode = True
 
-class EventWithQAResponse(EventResponse): 
+class EventWithQAResponse(BaseModel):
+    title : str
+    hostname : Optional[str] = None
+    description : Optional[str] = None
+    startDateTime: dt
+    endDateTime: Optional[dt] = None
+    location: Optional[str] = None
+    owner_id: Optional[str] = None
     questions: List[QuestionResponse] = []
 
     class Config:

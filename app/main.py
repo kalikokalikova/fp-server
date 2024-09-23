@@ -59,7 +59,7 @@ def get_events(skip:int=0,limit:int=100,db:Session=Depends(get_db)):
                 }
             )
 
-@app.get("/api/v1/events/{event_id}/{event_slug}", response_model=schemas.EventResponse, status_code=status.HTTP_200_OK)
+@app.get("/api/v1/events/{event_id}/{event_slug}", status_code=status.HTTP_200_OK)
 def get_event_by_id(event_id: int, event_slug: str, db: Session = Depends(get_db)):
     #eventually: 401 unauthorized?
     try: 
@@ -84,11 +84,35 @@ def get_event_by_id(event_id: int, event_slug: str, db: Session = Depends(get_db
                     "message": "Event not found"
                 }  
             )
-        return event
+        
+        if event.allowQA:
+            # Fetch questions for the event
+            questions = db.query(models.Question).filter(models.Question.event_id == event.id).all()
+
+            # For each question, fetch answers
+            question_responses = []
+            for question in questions:
+                answers = db.query(models.Answer).filter(models.Answer.question_id == question.id).all()
+
+                answer_responses = [schemas.AnswerResponse(id=answer.id, answer=answer.answer) for answer in answers]
+
+                question_responses.append(schemas.QuestionResponse(
+                    question=question.question,
+                    answers=answer_responses  # Use AnswerResponse objects directly
+                ))
+            event.questions = question_responses
+
+            event_dict = event.__dict__.copy()
+            event_dict['questions'] = question_responses
+            
+            return schemas.EventWithQAResponse.model_validate(event_dict)
+
+        event_dict = event.__dict__.copy()
+        return schemas.EventResponse.model_validate(event_dict)
     
     except Exception as e:
         #do we want to log errors?
-        #print(f"Error fetching events: {e}")
+        print(f"Error fetching event: {e}")
         return JSONResponse(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 content={

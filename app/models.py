@@ -32,14 +32,13 @@ class Event(Base):
 class Question(Base):
     __tablename__ = "questions"
     id = Column(Integer, primary_key=True, index=True)
-    content = Column(String(500))
+    question = Column(String(500))
     event_id = Column(Integer, ForeignKey("events.id"))
     #asker_name = Column(String(255)) #pull from user id if logged in, allow anon questions to add name?
 
 class Answer(Base):
     __tablename__ = "answers"
     id = Column(Integer, primary_key=True, index=True)
-    content = Column(String(500))
+    answer = Column(String(500))
     question_id = Column(Integer, ForeignKey("questions.id"))
-    answer_id = Column(Integer, ForeignKey("answers.id"))
     #answerer_name = Column(String(255)) #pull from user id if logged in, allow anon answerers to add name?
