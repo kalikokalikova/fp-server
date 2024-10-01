@@ -35,7 +35,7 @@ def create_event(db:Session, event:schemas.EventCreate):
 
     db_event.slug = slug
     db.commit()
-    
+
     return db_event
 
 def update_event(db: Session, event_id: int, event_data: schemas.EventUpdate):
