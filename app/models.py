@@ -20,11 +20,11 @@ class Event(Base):
     description = Column(String(500), index=True)
     startDateTime = Column(DateTime)
     endDateTime = Column(DateTime)
-    location = Column(String(255)) #str for now, object later
+    # location = Column(String(255)) #this will be a foreign key to another table
     isShareable = Column(Boolean)
-    image_url = Column(String(255)) 
+    image_url = Column(String(255))
     owner_id = Column(Integer)
     email = Column(String(255), nullable=True)
     allowQA = Column(Boolean, default=True)
     phone = Column(String(15), nullable=True)
-    slug = Column(String(255), unique=True, nullable=False, index=True)
+    slug = Column(String(255), index=True)

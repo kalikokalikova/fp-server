@@ -34,7 +34,7 @@ def get_db():
 # GETS
 @app.get("/api/v1/events/", response_model=list[schemas.Event], status_code=status.HTTP_200_OK)
 def get_events(skip:int=0,limit:int=100,db:Session=Depends(get_db)):
-    try: 
+    try:
         events = crud.get_events(db,skip=skip,limit=limit)
         if not events:
             return JSONResponse(
@@ -46,7 +46,7 @@ def get_events(skip:int=0,limit:int=100,db:Session=Depends(get_db)):
                 }
             )
         return events
-    
+
     except Exception as e:
         #do we want to log errors?
         print(f"Error fetching events: {e}")
@@ -62,7 +62,7 @@ def get_events(skip:int=0,limit:int=100,db:Session=Depends(get_db)):
 @app.get("/api/v1/events/{event_slug}", response_model=schemas.Event, status_code=status.HTTP_200_OK)
 def get_event_by_id(event_id: int, db: Session = Depends(get_db)):
     #eventually: 401 unauthorized?
-    try: 
+    try:
         #check if valid event_id
         if event_id <= 0:
             return JSONResponse(
@@ -82,10 +82,10 @@ def get_event_by_id(event_id: int, db: Session = Depends(get_db)):
                     "status": 404,
                     "error": True,
                     "message": "Event not found"
-                }  
+                }
             )
         return event
-    
+
     except Exception as e:
         #do we want to log errors?
         #print(f"Error fetching events: {e}")
@@ -121,14 +121,14 @@ def post_event(event:schemas.EventCreate = Body(...), db: Session=Depends(get_db
         if isinstance(event.location, dict): #if API call successful and passed as dict
             location_name = event.location.get('location')
             location_address = event.location.get('address')
-        else: 
+        else:
             location_name = event.location
             location_address = None
-        
+
         created_event = crud.create_event(db=db, event=event) #location_name=location_name, location_address=location_address
 
         return created_event
-    
+
     except Exception as e:
         print(f"Error while creating event: {e}")
         return JSONResponse(
@@ -154,7 +154,7 @@ def update_event(event_id: int, event_data: schemas.EventUpdate, db: Session = D
         #            "message": "Unauthorized access"
         #        }
         #    )
-        #if not authorized_to_update(event_id): 
+        #if not authorized_to_update(event_id):
         #    return JSONResponse(
         #        status_code=status.HTTP_403_FORBIDDEN,
         #        content={
@@ -173,7 +173,7 @@ def update_event(event_id: int, event_data: schemas.EventUpdate, db: Session = D
                     "message": "Invalid event data"
                 }
             )
-        
+
         event = crud.update_event(db=db, event_id=event_id, event_data=event_data)
 
         if event is None:
@@ -185,7 +185,7 @@ def update_event(event_id: int, event_data: schemas.EventUpdate, db: Session = D
                     "message": "Event not found"
                 }
             )
-        
+
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
@@ -194,7 +194,7 @@ def update_event(event_id: int, event_data: schemas.EventUpdate, db: Session = D
                 "message": "Event successfully updated",
                 "data": event
             }
-        )        
+        )
 
     except Exception as e:
         # 500 Internal Server Error: Catch any unexpected server-side errors
@@ -210,7 +210,7 @@ def update_event(event_id: int, event_data: schemas.EventUpdate, db: Session = D
 # DELETES
 @app.delete("/api/v1/events?", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
 def delete_event(event_id: int, db: Session = Depends(get_db)):
-    try: 
+    try:
         #authentication placeholders
         #if not authorized_user():
         #    return JSONResponse(
@@ -221,7 +221,7 @@ def delete_event(event_id: int, db: Session = Depends(get_db)):
         #            "message": "Unauthorized access"
         #        }
         #    )
-        #if not authorized_to_update(event_id): 
+        #if not authorized_to_update(event_id):
         #    return JSONResponse(
         #        status_code=status.HTTP_403_FORBIDDEN,
         #        content={
@@ -260,7 +260,7 @@ def delete_event(event_id: int, db: Session = Depends(get_db)):
                 "message": "Deleted event"
             }
         )
-    
+
     except Exception as e:
         # 500 Internal Server Error: Catch any unexpected server-side errors
         return JSONResponse(
