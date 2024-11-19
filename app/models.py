@@ -1,5 +1,6 @@
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from app.database import Base
 
@@ -20,11 +21,28 @@ class Event(Base):
     description = Column(String(500), index=True)
     startDateTime = Column(DateTime)
     endDateTime = Column(DateTime)
-    # location = Column(String(255)) #this will be a foreign key to another table
-    isShareable = Column(Boolean)
+    location_id = Column(Integer, ForeignKey("locations.id"))
+    location = relationship("Location", back_populates="events")
+    isShareable = Column(Boolean, default=False)
     image_url = Column(String(255))
     owner_id = Column(Integer)
     email = Column(String(255), nullable=True)
     allowQA = Column(Boolean, default=True)
     phone = Column(String(15), nullable=True)
     slug = Column(String(255), index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+class Location(Base):
+    __tablename__ = "locations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    placeID = Column(String, nullable=True) #foreign key
+    name = Column(String, nullable=False, index=True)
+    addressLine1 = Column(String, nullable=False)
+    addressLine2 = Column(String, nullable=True)
+    city = Column(String, nullable=False)
+    state = Column(String(2), nullable=False)
+    postcode = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    events = relationship("Event", back_populates="location")
