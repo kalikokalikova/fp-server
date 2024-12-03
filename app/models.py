@@ -21,7 +21,7 @@ class Event(Base):
     description = Column(String(500), index=True)
     startDateTime = Column(DateTime)
     endDateTime = Column(DateTime)
-    location_id = Column(Integer, ForeignKey("locations.id"))
+    location_id = Column(Integer, ForeignKey("locations.id"), nullable=True)
     location = relationship("Location", back_populates="events")
     isShareable = Column(Boolean, default=False)
     image_url = Column(String(255))
@@ -35,14 +35,13 @@ class Event(Base):
 
 class Location(Base):
     __tablename__ = "locations"
-
     id = Column(Integer, primary_key=True, index=True)
-    placeID = Column(String, nullable=True) #foreign key
-    name = Column(String, nullable=False, index=True)
-    addressLine1 = Column(String, nullable=False)
-    addressLine2 = Column(String, nullable=True)
-    city = Column(String, nullable=False)
+    placeId = Column(String(255), nullable=True) #foreign key
+    name = Column(String(255), nullable=False, index=True)
+    addressLine1 = Column(String(255), nullable=False)
+    addressLine2 = Column(String(255), nullable=True)
+    city = Column(String(100), nullable=False)
     state = Column(String(2), nullable=False)
-    postcode = Column(String, nullable=False)
+    postcode = Column(String(20), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     events = relationship("Event", back_populates="location")
