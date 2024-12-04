@@ -17,7 +17,7 @@ class Event(Base):
     __tablename__ = "events"
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(255), index=True)
-    hostname = Column(String(255))
+    hostName = Column(String(255))
     description = Column(String(500), index=True)
     startDateTime = Column(DateTime)
     endDateTime = Column(DateTime)
@@ -41,7 +41,7 @@ class Location(Base):
     addressLine1 = Column(String(255), nullable=False)
     addressLine2 = Column(String(255), nullable=True)
     city = Column(String(100), nullable=False)
-    state = Column(String(2), nullable=False)
+    state = Column(String(100), nullable=False)
     postcode = Column(String(20), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     events = relationship("Event", back_populates="location")

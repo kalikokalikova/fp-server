@@ -3,7 +3,7 @@ from datetime import datetime as dt
 from pydantic import BaseModel, EmailStr
 
 class LocationBase(BaseModel):
-    name: str
+    name: Optional[str] = None
     addressLine1: str
     addressLine2: Optional[str] = None
     city: str
@@ -20,16 +20,17 @@ class Location(LocationBase):
 
     class Config:
         from_attributes = True
+        extra = "ignore"
 
 class EventBase(BaseModel):
     title: str
-    hostname: Optional[str] = None
+    hostName: Optional[str] = None
     description: Optional[str] = None
     startDateTime: dt
     endDateTime: Optional[dt] = None
     location_id: Optional[int] = None
     isShareable: bool
-    allowQA: bool
+    allowQA: bool = True
     image_url: Optional[str] = None
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
@@ -71,3 +72,4 @@ class Event(EventBase):
 
     class Config:
         from_attributes = True
+        extra = "ignore"

@@ -36,8 +36,11 @@ def get_or_create_location(db: Session, location_data: schemas.LocationBase):
     if existing_location:
         return existing_location.id
 
+    if not location_data.name:
+        location_data.name = f"{location_data.addressLine1}, {location_data.city}, {location_data.state} {location_data.postcode}"
+    
     # Create new location if not found
-    new_location = models.Location(**location_data.dict())
+    new_location = models.Location(**location_data.model_dump())
     db.add(new_location)
     db.commit()
     db.refresh(new_location)
