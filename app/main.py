@@ -118,14 +118,7 @@ def post_event(event:schemas.EventCreate = Body(...), db: Session=Depends(get_db
                 }
             )
 
-        if isinstance(event.location, dict): #if API call successful and passed as dict
-            location_name = event.location.get('location')
-            location_address = event.location.get('address')
-        else:
-            location_name = event.location
-            location_address = None
-
-        created_event = crud.create_event(db=db, event=event) #location_name=location_name, location_address=location_address
+        created_event = crud.create_event(db=db, event=event)
 
         return created_event
 
