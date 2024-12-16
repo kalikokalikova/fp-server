@@ -69,6 +69,7 @@ class EventUpdate(BaseModel):
 
 class Event(EventBase):
     id : int
+    location: Optional[Location]
 
     class Config:
         from_attributes = True
