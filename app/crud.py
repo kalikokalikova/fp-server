@@ -23,7 +23,7 @@ def create_event(db:Session, event:schemas.EventCreate):
     db.commit()
     db.refresh(db_event)
 
-    slug = f"{slugify(event.title)}--{db_event.id}"
+    slug = f"{db_event.id}--{slugify(event.title)}"
 
     db_event.slug = slug
     db.commit()
