@@ -60,9 +60,23 @@ def get_events(skip:int=0,limit:int=100,db:Session=Depends(get_db)):
             )
 
 @app.get("/api/v1/events/{event_slug}", response_model=schemas.Event, status_code=status.HTTP_200_OK)
-def get_event_by_id(event_id: int, db: Session = Depends(get_db)):
+def get_event_by_slug(event_slug: str, db: Session = Depends(get_db)):
+    #extract ID from slug
     #eventually: 401 unauthorized?
     try:
+        # Split the slug to extract event_id
+        try:
+            event_id = int(event_slug.split("--")[0])
+        except (IndexError, ValueError):
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={
+                    "status": 400,
+                    "error": True,
+                    "message": "Invalid event slug format"
+                }
+            )
+        
         #check if valid event_id
         if event_id <= 0:
             return JSONResponse(
@@ -70,7 +84,7 @@ def get_event_by_id(event_id: int, db: Session = Depends(get_db)):
                 content={
                     "status": 400,
                     "error": True,
-                    "message": "Invalid event ID provided"
+                    "message": "Invalid event ID provided in slug"
                 }
             )
 
@@ -84,7 +98,7 @@ def get_event_by_id(event_id: int, db: Session = Depends(get_db)):
                     "message": "Event not found"
                 }
             )
-        return event
+        return schemas.Event.model_validate(event)
 
     except Exception as e:
         #do we want to log errors?
