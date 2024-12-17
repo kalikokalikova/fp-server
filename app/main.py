@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, status, Body
+from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -99,7 +100,7 @@ def get_event_by_id(event_id: int, db: Session = Depends(get_db)):
             )
 
 # POSTS
-@app.post("/api/v1/events/", response_model=schemas.Event, status_code=status.HTTP_201_CREATED)
+@app.post("/api/v1/events/", status_code=status.HTTP_201_CREATED)
 def post_event(event:schemas.EventCreate = Body(...), db: Session=Depends(get_db)):
     try:
         #eventually: authentication check
@@ -120,16 +121,27 @@ def post_event(event:schemas.EventCreate = Body(...), db: Session=Depends(get_db
 
         created_event = crud.create_event(db=db, event=event)
 
-        return created_event
+        event_data = schemas.Event.from_orm(created_event).dict()
 
-    except Exception as e:
-        print(f"Error while creating event: {e}")
+        event_data = jsonable_encoder(event_data)
+
+        return JSONResponse(
+            status_code=status.HTTP_201_CREATED,
+            content={
+                "status": 201,
+                "error": False,
+                "data": event_data
+            }
+        )
+
+    except Exception as exception:
+        print(f"Error while creating event: {exception}")
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={
                 "status": 500,
                 "error": True,
-                "message": "An unexpected error occurred while creating the event"
+                "message": exception
             }
         )
 

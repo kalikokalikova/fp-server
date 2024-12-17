@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from slugify import slugify
+import json
 
 import app.models as models, app.schemas as schemas
 
@@ -15,7 +16,7 @@ def create_event(db:Session, event:schemas.EventCreate):
 
     event_data = event.model_dump(exclude={"location", "location_id"})
     db_event = models.Event(**event_data, location_id=location_id)
-    
+
     event_data = event.model_dump(exclude={"location", "location_id"})
     db_event = models.Event(**event_data, location_id=location_id, slug=None)
 
@@ -38,7 +39,7 @@ def get_or_create_location(db: Session, location_data: schemas.LocationBase):
 
     if not location_data.name:
         location_data.name = f"{location_data.addressLine1}, {location_data.city}, {location_data.state} {location_data.postcode}"
-    
+
     # Create new location if not found
     new_location = models.Location(**location_data.model_dump())
     db.add(new_location)
