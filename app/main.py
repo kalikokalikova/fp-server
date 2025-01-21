@@ -59,24 +59,13 @@ def get_events(skip:int=0,limit:int=100,db:Session=Depends(get_db)):
                 }
             )
 
-@app.get("/api/v1/events/{event_slug}", response_model=schemas.Event, status_code=status.HTTP_200_OK)
-def get_event_by_slug(event_slug: str, db: Session = Depends(get_db)):
-    #extract ID from slug
-    #eventually: 401 unauthorized?
-    try:
-        # Split the slug to extract event_id
-        try:
-            event_id = int(event_slug.split("--")[0])
-        except (IndexError, ValueError):
-            return JSONResponse(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                content={
-                    "status": 400,
-                    "error": True,
-                    "message": "Invalid event slug format"
-                }
-            )
-        
+@app.get("/api/v1/events/{event_id}/{event_name}", response_model=schemas.Event, status_code=status.HTTP_200_OK)
+def get_event_by_slug(
+            event_id: int,
+            event_name: str,
+            db: Session = Depends(get_db)
+        ):
+    try: 
         #check if valid event_id
         if event_id <= 0:
             return JSONResponse(

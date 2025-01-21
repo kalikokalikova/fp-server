@@ -13,16 +13,14 @@ def create_event(db:Session, event:schemas.EventCreate):
     location_id = get_or_create_location(db, event.location) if event.location else event.location_id
 
     event_data = event.model_dump(exclude={"location", "location_id"})
-    db_event = models.Event(**event_data, location_id=location_id)
-    
-    event_data = event.model_dump(exclude={"location", "location_id"})
+ 
     db_event = models.Event(**event_data, location_id=location_id, slug=None)
 
     db.add(db_event)
     db.commit()
     db.refresh(db_event)
 
-    slug = f"{db_event.id}--{slugify(event.title)}"
+    slug = f"{db_event.id}/{slugify(event.title)}"
 
     db_event.slug = slug
     db.commit()
