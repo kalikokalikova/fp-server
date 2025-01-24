@@ -32,6 +32,10 @@ def get_db():
     finally:
         db.close()
 
+@app.get("/test-cors")
+async def test_cors():
+    return {"message": "CORS works!"}
+
 # GETS
 @app.get("/api/v1/events/", response_model=list[schemas.Event], status_code=status.HTTP_200_OK)
 def get_events(skip:int=0,limit:int=100,db:Session=Depends(get_db)):
