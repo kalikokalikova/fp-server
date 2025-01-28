@@ -68,8 +68,26 @@ class EventUpdate(BaseModel):
     slug: Optional[str] = None
 
 class Event(EventBase):
-    id : int
+    id: int
 
     class Config:
         from_attributes = True
         extra = "ignore"
+
+class QuestionBase(BaseModel):
+    event_id: int
+    asker_id: int
+    question: str
+
+class QuestionCreate(QuestionBase):
+    pass
+
+class Question(QuestionBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+class AnswerBase(BaseModel):
+    answer_text: str
+    question_id: int

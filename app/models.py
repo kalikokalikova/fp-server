@@ -33,6 +33,8 @@ class Event(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
+    questions = relationship("Question", back_populates="event", cascade="all, delete")
+
 class Location(Base):
     __tablename__ = "locations"
     id = Column(Integer, primary_key=True, index=True)
@@ -45,3 +47,14 @@ class Location(Base):
     postcode = Column(String(20), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     events = relationship("Event", back_populates="location")
+
+class Question(Base):
+    __tablename__ = "questions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
+    asker_id = Column(Integer, nullable=False)
+    question_text = Column(String, nullable=False)
+
+    # Relationship to Event (optional, for ORM navigation)
+    event = relationship("Event", back_populates="questions")

@@ -64,3 +64,13 @@ def delete_event(db: Session, event_id: int):
     db.delete(event)
     db.commit()
     return event
+
+def create_question(db: Session, question: schemas.QuestionCreate):
+    db_question = models.Question(**question.model_dump())
+    db.add(db_question)
+    db.commit()
+    db.refresh(db_question)
+    return db_question
+
+def get_questions_by_event(db: Session, event_id: int):
+    return db.query(models.Question).filter(models.Question.event_id == event_id).all()
