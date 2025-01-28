@@ -1,6 +1,7 @@
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+from sqlalchemy.sql import func
 
 from app.database import Base
 
@@ -18,9 +19,14 @@ class Event(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(255), index=True)
     hostName = Column(String(255))
+    hostName = Column(String(255))
     description = Column(String(500), index=True)
     startDateTime = Column(DateTime)
     endDateTime = Column(DateTime)
+    location_id = Column(Integer, ForeignKey("locations.id"), nullable=True)
+    location = relationship("Location", back_populates="events")
+    isShareable = Column(Boolean, default=False)
+    image_url = Column(String(255))
     location_id = Column(Integer, ForeignKey("locations.id"), nullable=True)
     location = relationship("Location", back_populates="events")
     isShareable = Column(Boolean, default=False)
