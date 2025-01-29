@@ -58,8 +58,6 @@ class EventCreate(EventBase):
 
 class EventUpdate(BaseModel):
     title: Optional[str] = None
-    #does changing the title change the slug? 
-    #if yes, do we maintain redirects?
     description: Optional[str] = None
     startDateTime: Optional[dt] = None 
     location_id: Optional[int] = None
@@ -69,6 +67,7 @@ class EventUpdate(BaseModel):
 
 class Event(EventBase):
     id : int
+    location: Optional[Location]
 
     class Config:
         from_attributes = True
