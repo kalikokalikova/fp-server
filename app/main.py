@@ -40,7 +40,6 @@ async def test_cors():
 @app.get("/api/v1/events/", response_model=list[schemas.Event], status_code=status.HTTP_200_OK)
 def get_events(skip:int=0,limit:int=100,db:Session=Depends(get_db)):
     try:
-    try:
         events = crud.get_events(db,skip=skip,limit=limit)
         if not events:
             return JSONResponse(
@@ -93,7 +92,6 @@ def get_event_by_slug(
                     "error": True,
                     "message": "Event not found"
                 }
-                }
             )
         return schemas.Event.model_validate(event)
 
@@ -140,7 +138,7 @@ def post_event(event:schemas.EventCreate = Body(...), db: Session=Depends(get_db
             content={
                 "status": 500,
                 "error": True,
-                "message": exception
+                "message": e
             }
         )
 
@@ -202,7 +200,6 @@ def update_event(event_id: int, event_data: schemas.EventUpdate, db: Session = D
                 "data": event
             }
         )
-        )
 
     except Exception as e:
         # 500 Internal Server Error: Catch any unexpected server-side errors
@@ -218,7 +215,6 @@ def update_event(event_id: int, event_data: schemas.EventUpdate, db: Session = D
 # DELETES
 @app.delete("/api/v1/events?", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
 def delete_event(event_id: int, db: Session = Depends(get_db)):
-    try:
     try:
         #authentication placeholders
         #if not authorized_user():
