@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from slugify import slugify
 import json
 
@@ -8,16 +8,13 @@ def get_events(db: Session, skip:int=0, limit: int=100):
     return db.query(models.Event).offset(skip).limit(limit).all()
 
 def get_event_by_id(db: Session, event_id: int):
-    #permit get by slug? what if slug is changed?
-    return db.query(models.Event).filter(models.Event.id == event_id).first()
+    return db.query(models.Event).options(joinedload(models.Event.location)).filter(models.Event.id == event_id).first()
 
 def create_event(db:Session, event:schemas.EventCreate):
     location_id = get_or_create_location(db, event.location) if event.location else event.location_id
 
     event_data = event.model_dump(exclude={"location", "location_id"})
-    db_event = models.Event(**event_data, location_id=location_id)
-
-    event_data = event.model_dump(exclude={"location", "location_id"})
+ 
     db_event = models.Event(**event_data, location_id=location_id, slug=None)
 
     db.add(db_event)
@@ -39,7 +36,7 @@ def get_or_create_location(db: Session, location_data: schemas.LocationBase):
 
     if not location_data.name:
         location_data.name = f"{location_data.addressLine1}, {location_data.city}, {location_data.state} {location_data.postcode}"
-
+    
     # Create new location if not found
     new_location = models.Location(**location_data.model_dump())
     db.add(new_location)

@@ -12,7 +12,6 @@ from app.database import Base
 #     todos = relationship("Todo",back_populates="owner")
 #     is_active = Column(Boolean,default=False)
 
-
 class Event(Base):
     __tablename__ = "events"
     id = Column(Integer, primary_key=True, index=True)
@@ -32,9 +31,6 @@ class Event(Base):
     slug = Column(String(255), index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-
-    class Config:
-        orm_mode = True
 
 class Location(Base):
     __tablename__ = "locations"
