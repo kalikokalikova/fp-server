@@ -130,6 +130,7 @@ def post_event(event:schemas.EventCreate = Body(...), db: Session=Depends(get_db
         created_event = crud.create_event(db=db, event=event)
 
         return created_event
+        return created_event
 
     except Exception as e:
         print(f"Error while creating event: {e}")
