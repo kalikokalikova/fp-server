@@ -71,7 +71,7 @@ def get_event_by_slug(
             event_name: str,
             db: Session = Depends(get_db)
         ):
-    try: 
+    try:
         #check if valid event_id
         if event_id <= 0:
             return JSONResponse(
@@ -93,7 +93,7 @@ def get_event_by_slug(
                     "message": "Event not found"
                 }
             )
-        return schemas.Event.model_validate(event)
+        return schemas.Event.model_validate(schemas.Event.model_validate(event))
 
     except Exception as e:
         #do we want to log errors?
@@ -129,6 +129,7 @@ def post_event(event:schemas.EventCreate = Body(...), db: Session=Depends(get_db
 
         created_event = crud.create_event(db=db, event=event)
 
+        return created_event
         return created_event
 
     except Exception as e:
