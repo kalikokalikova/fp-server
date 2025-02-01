@@ -60,9 +60,12 @@ def get_events(skip:int=0,limit:int=100,db:Session=Depends(get_db)):
                 }
             )
 
-@app.get("/api/v1/events/{event_slug}", response_model=schemas.Event, status_code=status.HTTP_200_OK)
-def get_event_by_id(event_id: int, db: Session = Depends(get_db)):
-    #eventually: 401 unauthorized?
+@app.get("/api/v1/events/{event_id}/{event_name}", response_model=schemas.Event, status_code=status.HTTP_200_OK)
+def get_event_by_slug(
+            event_id: int,
+            event_name: str,
+            db: Session = Depends(get_db)
+        ):
     try:
         #check if valid event_id
         if event_id <= 0:
@@ -85,7 +88,7 @@ def get_event_by_id(event_id: int, db: Session = Depends(get_db)):
                     "message": "Event not found"
                 }
             )
-        return event
+        return schemas.Event.model_validate(event)
 
     except Exception as e:
         #do we want to log errors?
@@ -121,18 +124,7 @@ def post_event(event:schemas.EventCreate = Body(...), db: Session=Depends(get_db
 
         created_event = crud.create_event(db=db, event=event)
 
-        event_data = schemas.Event.from_orm(created_event).dict()
-
-        event_data = jsonable_encoder(event_data)
-
-        return JSONResponse(
-            status_code=status.HTTP_201_CREATED,
-            content={
-                "status": 201,
-                "error": False,
-                "data": event_data
-            }
-        )
+        return created_event
 
     except Exception as exception:
         print(f"Error while creating event: {exception}")
