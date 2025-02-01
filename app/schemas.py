@@ -7,9 +7,9 @@ class LocationBase(BaseModel):
     full_address: Optional[str] = Field(None, alias="locationText")
     address_1: str = Field(..., alias="addressLine1")
     address_2: Optional[str] = Field(None, alias="addressLine2")
-    city: str
-    state: str
-    zip: str = Field(..., alias="postcode")
+    city: Optional[str]
+    state: Optional[str]
+    zip: Optional[str] = Field(..., alias="postcode")
     place_id: Optional[str] = Field(None, alias="placeId")
     
     class Config:
