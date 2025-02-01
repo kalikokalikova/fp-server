@@ -77,7 +77,7 @@ def get_event(
                 content={
                     "status": 400,
                     "error": True,
-                    "message": "Invalid event ID provided in slug"
+                    "message": "Invalid event ID"
                 }
             )
 
@@ -92,22 +92,15 @@ def get_event(
                 }
             )
         
-        if event_name is None or event_name != event.slug:
-            return RedirectResponse(url=f"/api/v1/events/{event.id}/{event.slug}", status_code=307)
-        
-        return schemas.Event.model_validate(event)
+        if event_name is None or event_name != event.event.slug:
+            return RedirectResponse(url=f"/api/v1/events/{event.event.event_id}/{event.event.slug}", status_code=307)
+
+        return event
 
     except Exception as e:
-        #do we want to log errors?
-        #print(f"Error fetching events: {e}")
-        return JSONResponse(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                content={
-                    "status": 500,
-                    "error": True,
-                    "message": "An unexpected error occurred"
-                }
-            )
+        import traceback
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail="An unexpected error occurred")
 
 @app.post("/api/v1/events/", status_code=status.HTTP_201_CREATED)
 def post_event(event:schemas.EventCreate = Body(...), db: Session=Depends(get_db)):

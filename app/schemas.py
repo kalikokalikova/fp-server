@@ -55,19 +55,21 @@ class EventCreate(EventBase):
     location: Optional[LocationBase] = None
 
 class EventData(BaseModel):
+    event_id: int = Field(..., alias="id")
     title: str
     host: Optional[str] = None
     description: Optional[str] = None
     start_date_time: dt
     end_date_time: Optional[dt] = None
     allow_qa: bool
+    slug: str
 
     class Config:
         from_attributes = True
+        populate_by_name = True
         extra = "ignore"
 
 class EventResponse(BaseModel):
-    event_id: int
     event: EventData
     location: Optional[Location] = None
     #questions: Optional[List[Question]] = None

@@ -5,12 +5,42 @@ from typing import List
 import app.models as models, app.schemas as schemas
 
 def get_events(db: Session, skip:int=0, limit: int=100) -> List[schemas.EventResponse]:
-    events = db.query(models.Event).offset(skip).limit(limit).all()
-    return [schemas.EventResponse.model_validate(event) for event in events]
+    events = (
+        db.query(models.Event)
+        .options(joinedload(models.Event.location))
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+    return [schemas.EventResponse(
+            event=schemas.EventData.model_validate(event, from_attributes=True),
+            location=schemas.Location.model_validate(event.location, from_attributes=True) if event.location else None
+        )
+        for event in events
+    ]
 
 def get_event_by_id(db: Session, event_id: int) -> schemas.EventResponse:
-    event = db.query(models.Event).options(joinedload(models.Event.location)).filter(models.Event.event_id == event_id).first()
-    return schemas.EventResponse.model_validate(event)
+    event = (
+        db.query(models.Event)
+        .options(joinedload(models.Event.location))
+        .filter(models.Event.id == event_id)
+        .first()
+    )
+    if not event:
+        return None
+    
+    print("Retrieved Event:", event.__dict__)
+    
+    event_data = schemas.EventData.model_validate(event, from_attributes=True)
+    location_data = schemas.Location.model_validate(event.location, from_attributes=True) if event.location else None
+    
+    response = schemas.EventResponse(
+        event=event_data,
+        location=location_data
+    )
+
+    return response
 
 def create_event(db:Session, event:schemas.EventCreate):
     location_id = get_or_create_location(db, event.location) if event.location else event.location_id
