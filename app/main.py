@@ -66,6 +66,12 @@ def get_event_by_slug(
             event_name: str,
             db: Session = Depends(get_db)
         ):
+@app.get("/api/v1/events/{event_id}/{event_name}", response_model=schemas.Event, status_code=status.HTTP_200_OK)
+def get_event_by_slug(
+            event_id: int,
+            event_name: str,
+            db: Session = Depends(get_db)
+        ):
     try:
         #check if valid event_id
         if event_id <= 0:
@@ -88,7 +94,7 @@ def get_event_by_slug(
                     "message": "Event not found"
                 }
             )
-        return schemas.Event.model_validate(event)
+        return schemas.Event.model_validate(schemas.Event.model_validate(event))
 
     except Exception as e:
         #do we want to log errors?
