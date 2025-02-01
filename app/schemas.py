@@ -1,15 +1,18 @@
 from typing import Union, Optional
 from datetime import datetime as dt
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, Field
 
 class LocationBase(BaseModel):
-    name: Optional[str] = None
-    addressLine1: str
-    addressLine2: Optional[str] = None
+    name: Optional[str] = Field(None, alias="locationText")
+    address_1: str = Field(..., alias="addressLine1")
+    address_2: Optional[str] = Field(None, alias="addressLine2")
     city: str
     state: str
-    postcode: str
-    placeId: str
+    zip: str = Field(..., alias="postcode")
+    place_id: Optional[str] = None
+    
+    class Config:
+        populate_by_name = True
 
 class LocationCreate(LocationBase):
     pass
@@ -24,50 +27,49 @@ class Location(LocationBase):
 
 class EventBase(BaseModel):
     title: str
-    hostName: Optional[str] = None
+    host: Optional[str] = Field(None, alias="hostName")
     description: Optional[str] = None
-    startDateTime: dt
-    endDateTime: Optional[dt] = None
+    start_date_time: dt = Field(..., alias="startDateTime")
+    end_date_time: Optional[dt] = Field(None, alias="endDateTime")
     location_id: Optional[int] = None
-    isShareable: bool
-    allowQA: bool = True
+    allow_qa: bool = Field(..., alias="allowQA")
     image_url: Optional[str] = None
-    email: Optional[EmailStr] = None
-    phone: Optional[str] = None
-    owner_id: Optional[str] = None
 
     class Config: 
         json_schema_extra = {
             "example": {
                 "title": "a title",
-                "hostname": "my name",
+                "host": "my name",
                 "description": "A local picnic with games and food.",
-                "startDateTime": "2024-09-25T10:00:00Z",
-                "endDateTime": "2024-09-25T14:00:00Z",
+                "start_date_time": "2024-09-25T10:00:00Z",
+                "end_date_time": "2024-09-25T14:00:00Z",
                 "location_id": 1,
-                "isShareable": True,
-                "allowQA": True,
+                "allow_qa": True,
                 "image_url": "",
-                "email": "example@foo.com",
-                "phone": "9999999999"
             }
         }
+        populate_by_name = True
 
 class EventCreate(EventBase):
     location: Optional[LocationBase] = None
 
-class EventUpdate(BaseModel):
-    title: Optional[str] = None
+class EventData(BaseModel):
+    title: str
+    host: Optional[str] = None
     description: Optional[str] = None
-    startDateTime: Optional[dt] = None 
-    location_id: Optional[int] = None
-    isShareable: Optional[bool] = None
-    image_url: Optional[str] = None
-    slug: Optional[str] = None
+    start_date_time: dt
+    end_date_time: Optional[dt] = None
+    allow_qa: bool
 
-class Event(EventBase):
-    id : int
-    location: Optional[Location]
+    class Config:
+        from_attributes = True
+        extra = "ignore"
+
+class EventResponse(BaseModel):
+    event_id: int
+    event: EventData
+    location: Optional[Location] = None
+    #questions: Optional[List[Question]] = None
 
     class Config:
         from_attributes = True
