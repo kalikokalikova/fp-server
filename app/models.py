@@ -25,6 +25,7 @@ class Location(Base):
     id = Column(Integer, primary_key=True, index=True)
     place_id = Column(String(255), nullable=True) #foreign key
     name = Column(String(255), nullable=False, index=True)
+    full_address = Column(String(500), nullable=True)
     address_1 = Column(String(255), nullable=False)
     address_2 = Column(String(255), nullable=True)
     city = Column(String(100), nullable=False)

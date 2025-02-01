@@ -8,7 +8,7 @@ def get_events(db: Session, skip:int=0, limit: int=100) -> List[schemas.EventRes
     events = db.query(models.Event).offset(skip).limit(limit).all()
     return [schemas.EventResponse.model_validate(event) for event in events]
 
-def get_event_by_id(db: Session, id: int) -> schemas.EventResponse:
+def get_event_by_id(db: Session, event_id: int) -> schemas.EventResponse:
     event = db.query(models.Event).options(joinedload(models.Event.location)).filter(models.Event.event_id == event_id).first()
     return schemas.EventResponse.model_validate(event)
 
@@ -43,15 +43,10 @@ def get_or_create_location(db: Session, location_data: schemas.LocationBase):
     existing_location = db.query(models.Location).filter(models.Location.address_1 == location_data.address_1).first()
     if existing_location:
         return existing_location.id
+    
+    new_location_data = location_data.model_dump(by_alias=True)
 
-    new_location = models.Location(
-        place_id=location_data.place_id,
-        address_1=location_data.address_1,
-        address_2=location_data.address_2,
-        city=location_data.city,
-        state=location_data.state,
-        zip=location_data.zip
-    )
+    new_location = models.Location(**new_location_data)
 
     db.add(new_location)
     db.commit()

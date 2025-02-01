@@ -3,13 +3,14 @@ from datetime import datetime as dt
 from pydantic import BaseModel, Field
 
 class LocationBase(BaseModel):
-    name: Optional[str] = Field(None, alias="locationText")
+    name: Optional[str] = None
+    full_address: Optional[str] = Field(None, alias="locationText")
     address_1: str = Field(..., alias="addressLine1")
     address_2: Optional[str] = Field(None, alias="addressLine2")
     city: str
     state: str
     zip: str = Field(..., alias="postcode")
-    place_id: Optional[str] = None
+    place_id: Optional[str] = Field(None, alias="placeId")
     
     class Config:
         populate_by_name = True
