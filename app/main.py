@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, status, Body
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy.orm import Session
 import app.crud as crud, app.models as models, app.schemas as schemas
 from app.database import SessionLocal, engine, Base
@@ -62,10 +62,11 @@ def get_events(skip:int=0,limit:int=100,db:Session=Depends(get_db)):
                 }
             )
 
-@app.get("/api/v1/events/{event_id}/{event_name}", response_model=schemas.Event, status_code=status.HTTP_200_OK)
-def get_event_by_slug(
+@app.get("/api/v1/events/{event_id}", response_model=schemas.Event, status_code=status.HTTP_200_OK, name="Get event by ID")
+@app.get("/api/v1/events/{event_id}/{event_name}", response_model=schemas.Event, status_code=status.HTTP_200_OK, name="Get event by ID/slug")
+def get_event(
             event_id: int,
-            event_name: str,
+            event_name: str = None,
             db: Session = Depends(get_db)
         ):
     try:
@@ -90,7 +91,11 @@ def get_event_by_slug(
                     "message": "Event not found"
                 }
             )
-        return schemas.Event.model_validate(schemas.Event.model_validate(event))
+        
+        if event_name is None or event_name != event.slug:
+            return RedirectResponse(url=f"/api/v1/events/{event.id}/{event.slug}", status_code=307)
+        
+        return schemas.Event.model_validate(event)
 
     except Exception as e:
         #do we want to log errors?
