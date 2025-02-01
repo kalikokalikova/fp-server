@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, status, Body
+from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -31,6 +32,10 @@ def get_db():
     finally:
         db.close()
 
+@app.get("/test-cors")
+async def test_cors():
+    return {"message": "CORS works!"}
+
 # GETS
 @app.get("/api/v1/events/", response_model=list[schemas.Event], status_code=status.HTTP_200_OK)
 def get_events(skip:int=0,limit:int=100,db:Session=Depends(get_db)):
@@ -47,6 +52,7 @@ def get_events(skip:int=0,limit:int=100,db:Session=Depends(get_db)):
             )
         return events
 
+
     except Exception as e:
         #do we want to log errors?
         print(f"Error fetching events: {e}")
@@ -59,10 +65,13 @@ def get_events(skip:int=0,limit:int=100,db:Session=Depends(get_db)):
                 }
             )
 
-@app.get("/api/v1/events/{event_slug}", response_model=schemas.Event, status_code=status.HTTP_200_OK)
-def get_event_by_id(event_id: int, db: Session = Depends(get_db)):
-    #eventually: 401 unauthorized?
-    try:
+@app.get("/api/v1/events/{event_id}/{event_name}", response_model=schemas.Event, status_code=status.HTTP_200_OK)
+def get_event_by_slug(
+            event_id: int,
+            event_name: str,
+            db: Session = Depends(get_db)
+        ):
+    try: 
         #check if valid event_id
         if event_id <= 0:
             return JSONResponse(
@@ -70,7 +79,7 @@ def get_event_by_id(event_id: int, db: Session = Depends(get_db)):
                 content={
                     "status": 400,
                     "error": True,
-                    "message": "Invalid event ID provided"
+                    "message": "Invalid event ID provided in slug"
                 }
             )
 
@@ -84,7 +93,7 @@ def get_event_by_id(event_id: int, db: Session = Depends(get_db)):
                     "message": "Event not found"
                 }
             )
-        return event
+        return schemas.Event.model_validate(event)
 
     except Exception as e:
         #do we want to log errors?
@@ -99,7 +108,7 @@ def get_event_by_id(event_id: int, db: Session = Depends(get_db)):
             )
 
 # POSTS
-@app.post("/api/v1/events/", response_model=schemas.Event, status_code=status.HTTP_201_CREATED)
+@app.post("/api/v1/events/", status_code=status.HTTP_201_CREATED)
 def post_event(event:schemas.EventCreate = Body(...), db: Session=Depends(get_db)):
     try:
         #eventually: authentication check
@@ -121,6 +130,7 @@ def post_event(event:schemas.EventCreate = Body(...), db: Session=Depends(get_db
         created_event = crud.create_event(db=db, event=event)
 
         return created_event
+        return created_event
 
     except Exception as e:
         print(f"Error while creating event: {e}")
@@ -129,7 +139,7 @@ def post_event(event:schemas.EventCreate = Body(...), db: Session=Depends(get_db
             content={
                 "status": 500,
                 "error": True,
-                "message": "An unexpected error occurred while creating the event"
+                "message": e
             }
         )
 
@@ -147,6 +157,7 @@ def update_event(event_id: int, event_data: schemas.EventUpdate, db: Session = D
         #            "message": "Unauthorized access"
         #        }
         #    )
+        #if not authorized_to_update(event_id):
         #if not authorized_to_update(event_id):
         #    return JSONResponse(
         #        status_code=status.HTTP_403_FORBIDDEN,
@@ -167,6 +178,7 @@ def update_event(event_id: int, event_data: schemas.EventUpdate, db: Session = D
                 }
             )
 
+
         event = crud.update_event(db=db, event_id=event_id, event_data=event_data)
 
         if event is None:
@@ -178,6 +190,7 @@ def update_event(event_id: int, event_data: schemas.EventUpdate, db: Session = D
                     "message": "Event not found"
                 }
             )
+
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -214,6 +227,7 @@ def delete_event(event_id: int, db: Session = Depends(get_db)):
         #            "message": "Unauthorized access"
         #        }
         #    )
+        #if not authorized_to_update(event_id):
         #if not authorized_to_update(event_id):
         #    return JSONResponse(
         #        status_code=status.HTTP_403_FORBIDDEN,
@@ -253,6 +267,7 @@ def delete_event(event_id: int, db: Session = Depends(get_db)):
                 "message": "Deleted event"
             }
         )
+
 
     except Exception as e:
         # 500 Internal Server Error: Catch any unexpected server-side errors

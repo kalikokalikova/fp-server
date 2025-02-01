@@ -12,7 +12,6 @@ from app.database import Base
 #     todos = relationship("Todo",back_populates="owner")
 #     is_active = Column(Boolean,default=False)
 
-
 class Event(Base):
     __tablename__ = "events"
     id = Column(Integer, primary_key=True, index=True)
