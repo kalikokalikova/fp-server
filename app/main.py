@@ -129,8 +129,16 @@ def post_event(event:schemas.EventCreate = Body(...), db: Session=Depends(get_db
 
         created_event = crud.create_event(db=db, event=event)
 
-        return created_event
-        return created_event
+        event_data = schemas.Event.model_validate(created_event).model_dump()
+
+        return JSONResponse(
+            status_code=status.HTTP_201_CREATED,
+            content={
+                "status": 201,
+                "error": False,
+                "data": jsonable_encoder(event_data)
+            }
+        )
 
     except Exception as e:
         print(f"Error while creating event: {e}")
