@@ -74,20 +74,19 @@ class EventResponse(BaseModel):
         from_attributes = True
         extra = "ignore"
 
-class QuestionBase(BaseModel):
-    event_id: int
-    question_text: str
+class QACreate(BaseModel):
+    event_id: Optional[int] = None  # Required for questions
+    question_id: Optional[int] = None  # Required for answers
+    question_text: Optional[str] = None  # Present if creating a question
+    answer_text: Optional[str] = None  # Present if creating an answer
 
-class QuestionCreate(QuestionBase):
-    pass
-
-class QuestionResponse(QuestionBase):
+class QAResponse(BaseModel):
     id: int
+    event_id: Optional[int] = None
+    question_id: Optional[int] = None
+    question_text: Optional[str] = None
+    answer_text: Optional[str] = None
     created_at: dt
 
     class Config:
         from_attributes = True
-
-class AnswerBase(BaseModel):
-    answer_text: str
-    question_id: int
