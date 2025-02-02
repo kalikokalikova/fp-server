@@ -1,10 +1,11 @@
-from fastapi import FastAPI, Depends, status, Body
+from fastapi import FastAPI, Depends, status, Body, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy.orm import Session
 import app.crud as crud, app.models as models, app.schemas as schemas
 from app.database import SessionLocal, engine, Base
+import traceback
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -70,7 +71,6 @@ def get_event(
             db: Session = Depends(get_db)
         ):
     try:
-        #check if valid event_id
         if event_id <= 0:
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -98,8 +98,9 @@ def get_event(
         return event
 
     except Exception as e:
-        import traceback
         from fastapi import HTTPException
+        import traceback
+        print("Error Traceback:", traceback.format_exc())  # Debugging
         raise HTTPException(status_code=500, detail="An unexpected error occurred")
 
 @app.post("/api/v1/events/", status_code=status.HTTP_201_CREATED)
@@ -138,3 +139,56 @@ def post_event(event:schemas.EventCreate = Body(...), db: Session=Depends(get_db
                 "message": e
             }
         )
+
+@app.post("/api/v1/events/{event_id}/qa/", response_model=schemas.QAResponse)
+def create_qa(event_id: int, qa_data: schemas.QACreate, request: Request, db: Session = Depends(get_db)):
+    try:
+        event = db.query(models.Event).filter(models.Event.id == event_id).first()
+        if event is None:
+            raise ValueError("Event not found.")
+
+        if qa_data.question_text and qa_data.answer_text:
+            raise ValueError("Cannot have both question_text and answer_text.")
+        if not qa_data.question_text and not qa_data.answer_text:
+            raise ValueError("Either question_text or answer_text must be provided.")
+
+        if qa_data.question_text:
+            db_post = models.Question(event_id=event_id, question_text=qa_data.question_text)
+        
+        elif qa_data.answer_text:
+            if not qa_data.question_id:
+                raise ValueError("question_id is required for answers.")
+            question = db.query(models.Question).filter(models.Question.id == qa_data.question_id)
+            if question is None:
+                raise ValueError("Question not found")
+
+            db_post = models.Answer(question_id=qa_data.question_id, answer_text=qa_data.answer_text)
+
+        else:
+            raise ValueError("Either question_text or answer_text must be provided.")
+        
+        db.add(db_post)
+        db.commit()
+        db.refresh(db_post)
+        return db_post
+
+    except ValueError as e:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={
+                "status": 400,
+                "error": True,
+                "message": str(e),
+                "payload": qa_data.model_dump()
+            }
+        )
+    
+    except Exception as e:
+        error_response = {
+            "status": 400,
+            "error": True,
+            "message": str(e),
+            "payload": qa_data.model_dump(),
+            "trace": traceback.format_exc()
+        }
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=error_response)

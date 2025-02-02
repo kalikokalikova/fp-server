@@ -23,21 +23,44 @@ def get_events(db: Session, skip:int=0, limit: int=100) -> List[schemas.EventRes
 def get_event_by_id(db: Session, event_id: int) -> schemas.EventResponse:
     event = (
         db.query(models.Event)
-        .options(joinedload(models.Event.location))
+        .options(
+            joinedload(models.Event.location),
+            joinedload(models.Event.questions).joinedload(models.Question.answers))
+        .options(
+            joinedload(models.Event.location),
+            joinedload(models.Event.questions).joinedload(models.Question.answers))
         .filter(models.Event.id == event_id)
         .first()
     )
     if not event:
         return None
     
-    print("Retrieved Event:", event.__dict__)
-    
     event_data = schemas.EventData.model_validate(event, from_attributes=True)
     location_data = schemas.Location.model_validate(event.location, from_attributes=True) if event.location else None
     
+    questions_data = None
+    if event.allow_qa:
+        questions_data = [
+            schemas.QuestionResponse(
+                id=q.id,
+                question_text=q.question_text,
+                created_at=q.created_at,
+                answers=[
+                    schemas.AnswerResponse(
+                        id=a.id,
+                        answer_text=a.answer_text,
+                        created_at=a.created_at
+                    ) for a in q.answers
+                ] if q.answers else None
+            ) for q in event.questions
+        ]
+
     response = schemas.EventResponse(
         event=event_data,
-        location=location_data
+        location=location_data,
+        questions=questions_data
+        location=location_data,
+        questions=questions_data
     )
 
     return response
