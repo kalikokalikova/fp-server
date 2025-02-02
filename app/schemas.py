@@ -76,14 +76,14 @@ class EventResponse(BaseModel):
 
 class QuestionBase(BaseModel):
     event_id: int
-    asker_id: int
-    question: str
+    question_text: str
 
 class QuestionCreate(QuestionBase):
     pass
 
-class Question(QuestionBase):
+class QuestionResponse(QuestionBase):
     id: int
+    created_at: dt
 
     class Config:
         from_attributes = True
