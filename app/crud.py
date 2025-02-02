@@ -1,14 +1,46 @@
 from sqlalchemy.orm import Session, joinedload
 from slugify import slugify
-import json
+from typing import List
 
 import app.models as models, app.schemas as schemas
 
-def get_events(db: Session, skip:int=0, limit: int=100):
-    return db.query(models.Event).offset(skip).limit(limit).all()
+def get_events(db: Session, skip:int=0, limit: int=100) -> List[schemas.EventResponse]:
+    events = (
+        db.query(models.Event)
+        .options(joinedload(models.Event.location))
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
-def get_event_by_id(db: Session, event_id: int):
-    return db.query(models.Event).options(joinedload(models.Event.location)).filter(models.Event.id == event_id).first()
+    return [schemas.EventResponse(
+            event=schemas.EventData.model_validate(event, from_attributes=True),
+            location=schemas.Location.model_validate(event.location, from_attributes=True) if event.location else None
+        )
+        for event in events
+    ]
+
+def get_event_by_id(db: Session, event_id: int) -> schemas.EventResponse:
+    event = (
+        db.query(models.Event)
+        .options(joinedload(models.Event.location))
+        .filter(models.Event.id == event_id)
+        .first()
+    )
+    if not event:
+        return None
+    
+    print("Retrieved Event:", event.__dict__)
+    
+    event_data = schemas.EventData.model_validate(event, from_attributes=True)
+    location_data = schemas.Location.model_validate(event.location, from_attributes=True) if event.location else None
+    
+    response = schemas.EventResponse(
+        event=event_data,
+        location=location_data
+    )
+
+    return response
 
 def create_event(db:Session, event:schemas.EventCreate):
     location_id = get_or_create_location(db, event.location) if event.location else event.location_id
@@ -26,39 +58,38 @@ def create_event(db:Session, event:schemas.EventCreate):
     db_event.slug = slug
     db.commit()
 
-    return db_event
+    return schemas.EventResponse(
+        event_id=db_event.id,
+        event=schemas.EventData.model_validate(db_event),
+        location=schemas.Location.model_validate(db_event.location) if db_event.location else None
+    )
 
 def get_or_create_location(db: Session, location_data: schemas.LocationBase):
-    # Check if the location already exists
-    existing_location = db.query(models.Location).filter_by(placeId=location_data.placeId).first()
+    if location_data.place_id:
+        existing_location = db.query(models.Location).filter(models.Location.place_id == location_data.place_id).first()
+        if existing_location:
+            return existing_location.id
+
+    existing_location = db.query(models.Location).filter(models.Location.address_1 == location_data.address_1).first()
     if existing_location:
         return existing_location.id
-
-    if not location_data.name:
-        location_data.name = f"{location_data.addressLine1}, {location_data.city}, {location_data.state} {location_data.postcode}"
     
-    # Create new location if not found
-    new_location = models.Location(**location_data.model_dump())
+    new_location_data = location_data.model_dump(by_alias=False)
+
+    #placeholders for missing fields
+    #will need to return to this because this API is so damn inconsistent
+    default_values = {
+        "name": new_location_data.get("address_1", "Unnamed Location"),
+        "city": "Unknown",
+        "state": "Unknown",
+        "zip": "00000"
+    }
+    for field, default in default_values.items():
+        new_location_data[field] = new_location_data.get(field) or default
+
+    new_location = models.Location(**new_location_data)
+
     db.add(new_location)
     db.commit()
     db.refresh(new_location)
     return new_location.id
-
-def update_event(db: Session, event_id: int, event_data: schemas.EventUpdate):
-    event = db.query(models.Event).filter(models.Event.id == event_id).first()
-    if event is None:
-        return None
-    update_data = event_data.model_dump(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(event, key, value)
-    db.commit()
-    db.refresh(event)
-    return event
-
-def delete_event(db: Session, event_id: int):
-    event = db.query(models.Event).filter(models.Event.id == event_id).first()
-    if event is None:
-        return None
-    db.delete(event)
-    db.commit()
-    return event
