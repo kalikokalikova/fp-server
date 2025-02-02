@@ -44,4 +44,13 @@ class Question(Base):
     created_at = Column(DateTime, server_default=func.now())
 
     event = relationship("Event", back_populates="questions")
-    #answers = relationship("Answer", back_populates="question")
+    answers = relationship("Answer", back_populates="question")
+
+class Answer(Base):
+    __tablename__ = "answers"
+    id = Column(Integer, primary_key=True, index=True)
+    question_id = Column(Integer, ForeignKey ("questions.id"), nullable=False)
+    answer_text = Column(String(500), nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+
+    question = relationship("Question", back_populates="answers")
