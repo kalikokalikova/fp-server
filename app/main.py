@@ -179,8 +179,6 @@ def create_qa(event_id: int, qa_data: schemas.QACreate, request: Request, db: Se
                 "status": 400,
                 "error": True,
                 "message": str(e),
-                "route": str(request.url),
-                "method": request.method,
                 "payload": qa_data.model_dump()
             }
         )
@@ -190,8 +188,6 @@ def create_qa(event_id: int, qa_data: schemas.QACreate, request: Request, db: Se
             "status": 400,
             "error": True,
             "message": str(e),
-            "route": str(request.url),
-            "method": request.method,
             "payload": qa_data.model_dump(),
             "trace": traceback.format_exc()
         }

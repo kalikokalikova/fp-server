@@ -26,18 +26,19 @@ def get_event_by_id(db: Session, event_id: int) -> schemas.EventResponse:
         .options(
             joinedload(models.Event.location),
             joinedload(models.Event.questions).joinedload(models.Question.answers))
+        .options(
+            joinedload(models.Event.location),
+            joinedload(models.Event.questions).joinedload(models.Question.answers))
         .filter(models.Event.id == event_id)
         .first()
     )
     if not event:
         return None
     
-    print("Retrieved Event:", event.__dict__)
-    
     event_data = schemas.EventData.model_validate(event, from_attributes=True)
     location_data = schemas.Location.model_validate(event.location, from_attributes=True) if event.location else None
     
-    questions_data = None  # Default to None if QA is disabled
+    questions_data = None
     if event.allow_qa:
         questions_data = [
             schemas.QuestionResponse(
@@ -56,6 +57,8 @@ def get_event_by_id(db: Session, event_id: int) -> schemas.EventResponse:
 
     response = schemas.EventResponse(
         event=event_data,
+        location=location_data,
+        questions=questions_data
         location=location_data,
         questions=questions_data
     )
