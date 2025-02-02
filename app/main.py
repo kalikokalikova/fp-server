@@ -98,7 +98,6 @@ def get_event(
         return event
 
     except Exception as e:
-        import traceback
         from fastapi import HTTPException
         raise HTTPException(status_code=500, detail="An unexpected error occurred")
 
@@ -138,3 +137,23 @@ def post_event(event:schemas.EventCreate = Body(...), db: Session=Depends(get_db
                 "message": e
             }
         )
+
+@app.post("/questions/", response_model=schemas.QuestionResponse)
+def create_question(question: schemas.QuestionCreate = Body(...), db: Session = Depends(get_db)):
+    event = db.query(models.Event).filter(models.Event.id == question.event_id).first()
+    if event is None:
+        return JSONResponse(
+                status_code=status.HTTP_404_NOT_FOUND,
+                content={
+                    "status": 404,
+                    "error": True,
+                    "message": "Event not found"
+                }
+            )
+    
+    db_question = models.Question(**question.model_dump())
+    db.add(db_question)
+    db.commit()
+    db.refresh(db_question)
+
+    return db_question
