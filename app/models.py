@@ -18,9 +18,8 @@ class Event(Base):
     allow_qa = Column(Boolean, default=True)
     slug = Column(String(255), index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-    questions = relationship("Question", back_populates="event", cascade="all, delete")
+    questions = relationship("Question", back_populates="event")
 
 class Location(Base):
     __tablename__ = "locations"
@@ -34,15 +33,15 @@ class Location(Base):
     state = Column(String(100), nullable=False)
     zip = Column(String(20), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
     events = relationship("Event", back_populates="location")
 
 class Question(Base):
     __tablename__ = "questions"
-
     id = Column(Integer, primary_key=True, index=True)
     event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
-    asker_id = Column(Integer, nullable=False)
-    question_text = Column(String, nullable=False)
+    question_text = Column(String(500), nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
 
-    # Relationship to Event (optional, for ORM navigation)
     event = relationship("Event", back_populates="questions")
+    #answers = relationship("Answer", back_populates="question")
