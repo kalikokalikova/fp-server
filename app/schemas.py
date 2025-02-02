@@ -75,7 +75,6 @@ class EventResponse(BaseModel):
         extra = "ignore"
 
 class QACreate(BaseModel):
-    event_id: Optional[int] = None  # Required for questions
     question_id: Optional[int] = None  # Required for answers
     question_text: Optional[str] = None  # Present if creating a question
     answer_text: Optional[str] = None  # Present if creating an answer
