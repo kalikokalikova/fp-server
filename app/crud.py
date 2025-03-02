@@ -59,8 +59,6 @@ def get_event_by_id(db: Session, event_id: int) -> schemas.EventResponse:
         event=event_data,
         location=location_data,
         questions=questions_data
-        location=location_data,
-        questions=questions_data
     )
 
     return response
