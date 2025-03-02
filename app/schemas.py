@@ -66,9 +66,8 @@ class QACreate(BaseModel):
     answer_text: Optional[str] = None  # Present if creating an answer
 
 class QAResponse(BaseModel):
-    id: int
+    id: int # QUESTION id
     event_id: Optional[int] = None
-    question_id: Optional[int] = None
     question_text: Optional[str] = None
     answer_text: Optional[str] = None
     created_at: dt

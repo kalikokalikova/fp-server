@@ -156,13 +156,13 @@ def create_qa(event_id: int, qa_data: schemas.QACreate, request: Request, db: Se
             db_post = models.Question(event_id=event_id, question_text=qa_data.question_text)
         
         elif qa_data.answer_text:
-            if not qa_data.question_id:
-                raise ValueError("question_id is required for answers.")
-            question = db.query(models.Question).filter(models.Question.id == qa_data.question_id)
-            if question is None:
+            if not qa_data.id:
+                raise ValueError("question id is required to post answers.")
+            question = db.query(models.Question).filter(models.Question.id == qa_data.id).first()
+            if not question:
                 raise ValueError("Question not found")
 
-            db_post = models.Answer(question_id=qa_data.question_id, answer_text=qa_data.answer_text)
+            db_post = models.Answer(id=qa_data.id, answer_text=qa_data.answer_text)
 
         else:
             raise ValueError("Either question_text or answer_text must be provided.")
@@ -170,7 +170,8 @@ def create_qa(event_id: int, qa_data: schemas.QACreate, request: Request, db: Se
         db.add(db_post)
         db.commit()
         db.refresh(db_post)
-        return schemas.QAResponse.model_validate(db_post)
+
+        return db_post
 
     except ValueError as e:
         return JSONResponse(
