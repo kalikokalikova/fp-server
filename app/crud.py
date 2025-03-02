@@ -26,9 +26,6 @@ def get_event_by_id(db: Session, event_id: int) -> schemas.EventResponse:
         .options(
             joinedload(models.Event.location),
             joinedload(models.Event.questions).joinedload(models.Question.answers))
-        .options(
-            joinedload(models.Event.location),
-            joinedload(models.Event.questions).joinedload(models.Question.answers))
         .filter(models.Event.id == event_id)
         .first()
     )
@@ -57,8 +54,6 @@ def get_event_by_id(db: Session, event_id: int) -> schemas.EventResponse:
 
     response = schemas.EventResponse(
         event=event_data,
-        location=location_data,
-        questions=questions_data
         location=location_data,
         questions=questions_data
     )
