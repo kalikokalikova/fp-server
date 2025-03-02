@@ -1,6 +1,7 @@
 from typing import List, Optional
 from datetime import datetime as dt
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
+from datetime import datetime
 
 class LocationBase(BaseModel):
     name: Optional[str] = None
@@ -19,9 +20,7 @@ class Location(LocationBase):
     id: int
     created_at: dt
 
-    class Config:
-        from_attributes = True
-        extra = "ignore"
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
 
 class EventBase(BaseModel):
     title: str
@@ -33,19 +32,18 @@ class EventBase(BaseModel):
     allow_qa: bool = True
     image_url: Optional[str] = None
 
-    class Config: 
-        json_schema_extra = {
-            "example": {
-                "title": "a title",
-                "host": "my name",
-                "description": "A local picnic with games and food.",
-                "start_date_time": "2024-09-25T10:00:00Z",
-                "end_date_time": "2024-09-25T14:00:00Z",
-                "location_id": 1,
-                "allow_qa": True,
-                "image_url": "",
-            }
-        }
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "title": "a title",
+            "host": "my name",
+            "description": "A local picnic with games and food.",
+            "start_date_time": datetime.now().isoformat(),
+            "end_date_time": (datetime.now().replace(hour=23, minute=59)).isoformat(),
+            "location_id": 1,
+            "allow_qa": True,
+            "image_url": "",
+        }        
+    })
 
 class EventCreate(EventBase):
     location: Optional[LocationBase] = None
@@ -60,10 +58,7 @@ class EventData(BaseModel):
     allow_qa: bool
     slug: str
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
-        extra = "ignore"
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True, extra="ignore")
 
 class QACreate(BaseModel):
     question_id: Optional[int] = None  # Required for answers
@@ -78,17 +73,14 @@ class QAResponse(BaseModel):
     answer_text: Optional[str] = None
     created_at: dt
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class AnswerResponse(BaseModel):
     id: int = Field(..., alias="answer_id")
     answer_text: str
     created_at: dt
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 class QuestionResponse(BaseModel):
     id: int = Field(..., alias="question_id")
@@ -96,15 +88,11 @@ class QuestionResponse(BaseModel):
     created_at: dt
     answers: Optional[List[AnswerResponse]] = None
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 class EventResponse(BaseModel):
     event: EventData
     location: Optional[Location] = None
     questions: Optional[List[QuestionResponse]] = None
 
-    class Config:
-        from_attributes = True
-        extra = "ignore"
+    model_config = ConfigDict(from_attributes = True, extra = "ignore")
