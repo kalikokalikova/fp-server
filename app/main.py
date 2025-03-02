@@ -170,7 +170,7 @@ def create_qa(event_id: int, qa_data: schemas.QACreate, request: Request, db: Se
         db.add(db_post)
         db.commit()
         db.refresh(db_post)
-        return db_post
+        return schemas.QAResponse.model_validate(db_post)
 
     except ValueError as e:
         return JSONResponse(
