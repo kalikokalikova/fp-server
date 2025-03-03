@@ -76,13 +76,13 @@ class QuestionResponse(BaseModel):
     id: int
     question_text: str
     created_at: dt
-    answers: Optional[List[AnswerResponse]] = None
+    answers: Optional[List[AnswerResponse]] = []
 
     model_config = ConfigDict(from_attributes=True, extra="ignore")
 
 class EventResponse(BaseModel):
     event: EventData
     location: Optional[Location] = None
-    questions: Optional[List[QuestionResponse]] = None
+    questions: Optional[List[QuestionResponse]] = []
 
     model_config = ConfigDict(from_attributes = True, extra = "ignore")

@@ -96,6 +96,10 @@ def get_event(
         if event_name is None or event_name != event.event.slug:
             return RedirectResponse(url=f"/api/v1/events/{event.event.event_id}/{event.event.slug}", status_code=307)
 
+        for question in event.questions or []:
+            if question.answers is None:
+                question.answers = []
+                
         return event
 
     except Exception as e:
