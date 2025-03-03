@@ -65,21 +65,12 @@ class QACreate(BaseModel):
     question_text: Optional[str] = None  # Present if creating a question
     answer_text: Optional[str] = None  # Present if creating an answer
 
-class QAResponse(BaseModel):
-    id: int # QUESTION id
-    event_id: Optional[int] = None
-    question_text: Optional[str] = None
-    answer_text: Optional[str] = None
-    created_at: dt
-
-    model_config = ConfigDict(from_attributes=True)
-
 class AnswerResponse(BaseModel):
     id: int
     answer_text: str
     created_at: dt
 
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
 
 class QuestionResponse(BaseModel):
     id: int
@@ -87,7 +78,7 @@ class QuestionResponse(BaseModel):
     created_at: dt
     answers: Optional[List[AnswerResponse]] = None
 
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
 
 class EventResponse(BaseModel):
     event: EventData

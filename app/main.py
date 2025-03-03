@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 import app.crud as crud, app.models as models, app.schemas as schemas
 from app.database import SessionLocal, engine, Base
 import traceback
+from datetime import datetime
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -140,7 +141,7 @@ def post_event(event:schemas.EventCreate = Body(...), db: Session=Depends(get_db
             }
         )
 
-@app.post("/api/v1/events/{event_id}/qa/", response_model=schemas.QAResponse)
+@app.post("/api/v1/events/{event_id}/qa/")
 def create_qa(event_id: int, qa_data: schemas.QACreate, request: Request, db: Session = Depends(get_db)):
     try:
         event = db.query(models.Event).filter(models.Event.id == event_id).first()
@@ -154,24 +155,31 @@ def create_qa(event_id: int, qa_data: schemas.QACreate, request: Request, db: Se
 
         if qa_data.question_text:
             db_post = models.Question(event_id=event_id, question_text=qa_data.question_text)
-        
+            response_schema = schemas.QuestionResponse  # Use QuestionResponse for questions
         elif qa_data.answer_text:
             if not qa_data.id:
-                raise ValueError("question id is required to post answers.")
-            question = db.query(models.Question).filter(models.Question.id == qa_data.id).first()
+                raise ValueError("id is required for answers.")
+            question = db.query(models.Question).filter(models.Question.id == qa_data.id).first()  # Using `id`
             if not question:
                 raise ValueError("Question not found")
 
-            db_post = models.Answer(id=qa_data.id, answer_text=qa_data.answer_text)
+            db_post = models.Answer(
+                question_id=qa_data.id,
+                answer_text=qa_data.answer_text
+            )
+            db_post.event_id = question.event_id
 
+            response_schema = schemas.AnswerResponse  # Use AnswerResponse for answers
         else:
             raise ValueError("Either question_text or answer_text must be provided.")
-        
+
         db.add(db_post)
         db.commit()
         db.refresh(db_post)
 
-        return db_post
+        response_data = jsonable_encoder(response_schema.model_validate(db_post).model_dump(exclude_none=True))
+
+        return response_data  # Keeping direct return to avoid JSONResponse issues
 
     except ValueError as e:
         return JSONResponse(
@@ -180,16 +188,16 @@ def create_qa(event_id: int, qa_data: schemas.QACreate, request: Request, db: Se
                 "status": 400,
                 "error": True,
                 "message": str(e),
-                "payload": qa_data.model_dump()
+                "payload": jsonable_encoder(qa_data.model_dump())
             }
         )
-    
+
     except Exception as e:
         error_response = {
             "status": 400,
             "error": True,
             "message": str(e),
-            "payload": qa_data.model_dump(),
+            "payload": jsonable_encoder(qa_data.model_dump()),
             "trace": traceback.format_exc()
         }
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=error_response)
