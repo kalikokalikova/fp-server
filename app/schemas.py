@@ -61,38 +61,28 @@ class EventData(BaseModel):
     model_config = ConfigDict(from_attributes=True, populate_by_name=True, extra="ignore")
 
 class QACreate(BaseModel):
-    question_id: Optional[int] = None  # Required for answers
+    id: Optional[int] = None  # QUESTION id - Required for answers
     question_text: Optional[str] = None  # Present if creating a question
     answer_text: Optional[str] = None  # Present if creating an answer
 
-class QAResponse(BaseModel):
-    id: int
-    event_id: Optional[int] = None
-    question_id: Optional[int] = None
-    question_text: Optional[str] = None
-    answer_text: Optional[str] = None
-    created_at: dt
-
-    model_config = ConfigDict(from_attributes=True)
-
 class AnswerResponse(BaseModel):
-    id: int = Field(..., alias="answer_id")
+    id: int
     answer_text: str
     created_at: dt
 
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
 
 class QuestionResponse(BaseModel):
-    id: int = Field(..., alias="question_id")
+    id: int
     question_text: str
     created_at: dt
-    answers: Optional[List[AnswerResponse]] = None
+    answers: Optional[List[AnswerResponse]] = []
 
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
 
 class EventResponse(BaseModel):
     event: EventData
     location: Optional[Location] = None
-    questions: Optional[List[QuestionResponse]] = None
+    questions: Optional[List[QuestionResponse]] = []
 
     model_config = ConfigDict(from_attributes = True, extra = "ignore")
