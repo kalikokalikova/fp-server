@@ -1,8 +1,13 @@
-from fastapi import FastAPI, Depends, status, Body, Request
+from fastapi import FastAPI, Depends, status, Body, Request, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi_utils.tasks import repeat_every
 from sqlalchemy.orm import Session
+from contextlib import asynccontextmanager
+import logging
+import traceback
+from app.logging_config import configure_logging
 import app.crud as crud, app.models as models, app.schemas as schemas
 from app.database import SessionLocal, engine, Base
 import traceback
@@ -13,7 +18,24 @@ from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    db = SessionLocal()
+    try:
+        from app.crud import delete_old_events
+        deleted = delete_old_events(db)
+        logger.info(f"[Startup] Deleted {deleted} old events.")
+    except Exception as e:
+        logger.exception("[Startup] Error cleaning up old events")
+    finally:
+        db.close()
+
+    yield
+
+app = FastAPI(lifespan=lifespan)
+
+configure_logging()
+logger = logging.getLogger(__name__)
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -220,3 +242,38 @@ def create_qa(event_id: int, qa_data: schemas.QACreate, request: Request, db: Se
             "trace": traceback.format_exc()
         }
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=error_response)
+
+@app.delete("/api/v1/events/{event_id}", status_code=status.HTTP_200_OK)
+def delete_event(event_id: int, db: Session = Depends(get_db)):
+    logger.warning(f"DELETE route triggered for event {event_id}")
+
+    try:
+        deleted_event = crud.delete_event(db, event_id)
+        if deleted_event is None:
+            return JSONResponse(
+                status_code=status.HTTP_404_NOT_FOUND,
+                content={
+                    "status": 404,
+                    "error": True,
+                    "message": "Event not found"
+                }
+            )
+        
+        logger.info(f"Event {event_id} deleted via DELETE route")
+        return {
+            "status": 200,
+            "error": False,
+            "message": f"Event {event_id} deleted successfully"
+        }
+    
+    except Exception as e:
+        logger.exception("Error deleting event")
+        print(f"Error deleting event: {e}")
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={
+                "status": 500,
+                "error": True,
+                "message": "An unexpected error occurred"
+            }
+        )

@@ -1,8 +1,13 @@
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import or_
 from slugify import slugify
 from typing import List
+from datetime import datetime, timedelta, timezone
+import logging
 
 import app.models as models, app.schemas as schemas
+
+logger = logging.getLogger("app.main")
 
 def get_events(db: Session, skip:int=0, limit: int=100) -> List[schemas.EventResponse]:
     events = (
@@ -111,3 +116,40 @@ def get_or_create_location(db: Session, location_data: schemas.LocationBase):
     db.commit()
     db.refresh(new_location)
     return new_location.id
+
+def delete_event(db: Session, event_id: int):
+    event = db.query(models.Event).filter(models.Event.id == event_id).first()
+    if event is None:
+        logger.warning(f"[CRUD] Event {event_id} not found for deletion")
+        return None
+
+    logger.info(f"[CRUD] Deleting event {event.id} — {event.title}")
+    db.delete(event)
+    db.commit()
+    return event
+
+def delete_old_events(db: Session):
+    now = datetime.now(timezone.utc)
+    threshold = now - timedelta(weeks=2)
+
+    old_events = db.query(models.Event).filter(
+        or_(
+            models.Event.end_date_time != None,
+            models.Event.end_date_time == None
+        )
+    ).filter(
+        or_(
+            models.Event.end_date_time <= threshold,
+            models.Event.end_date_time == None,
+            models.Event.start_date_time <= threshold
+        )
+    ).all()
+
+    count = 0
+    for event in old_events:
+        logger.info(f"[Cleanup] Deleting event {event.id} — {event.title}")
+        db.delete(event)
+        count += 1
+
+    db.commit()
+    return count
