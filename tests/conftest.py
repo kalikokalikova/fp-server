@@ -24,6 +24,8 @@ def db():
 
 @pytest.fixture(scope="function")
 def client(db):
-   """Provides a FastAPI test client with a fresh DB session"""
-   app.dependency_overrides[get_db] = lambda: db
-   return TestClient(app)
+    """Provides a FastAPI test client with a fresh DB session"""
+    app.dependency_overrides[get_db] = lambda: db
+    with TestClient(app) as c:
+        yield c
+    app.dependency_overrides.clear()

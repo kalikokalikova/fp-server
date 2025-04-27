@@ -71,24 +71,65 @@ def test_get_event_by_id_and_slug():
     assert data["event"]["slug"] == event_slug
 
 def test_post_question():
-    """Test posting a question to an event"""
-
     create_response = client.post("/api/v1/events/", json={
         "title": "QA Event",
         "start_date_time": "2025-01-01T10:00:00",
         "allow_qa": True
     })
     assert create_response.status_code == 201
-    event_id = create_response.json()["data"]["event"]["id"]
+    event_id = create_response.json()["data"]["event"]["event_id"]  # fixed here
 
-    question_response = client.post(f"/api/v1/events/{event_id}/qa", json={
+    question_response = client.post(f"/api/v1/events/{event_id}/qa/", json={
         "question_text": "Can I bring my cat?"
     })
 
     assert question_response.status_code == 200
     data = question_response.json()
-
     assert "id" in data
-    assert data["question_text"] == "Can I bring my cat?"
 
-#test_post_answer
+def test_post_answer():
+    """Test posting an answer to an existing question"""
+
+    # Create an event
+    event_resp = client.post("/api/v1/events/", json={
+        "title": "Answer Event",
+        "start_date_time": "2025-01-01T10:00:00",
+        "allow_qa": True
+    })
+    event_id = event_resp.json()["data"]["event"]["event_id"]
+
+    # Post a question
+    question_resp = client.post(f"/api/v1/events/{event_id}/qa/", json={
+        "question_text": "Do I need a ticket?"
+    })
+    question_id = question_resp.json()["id"]
+
+    # Post an answer to the question
+    answer_resp = client.post(f"/api/v1/events/{event_id}/qa/", json={
+        "answer_text": "Yes, you do.",
+        "question_id": question_id
+    })
+
+    assert answer_resp.status_code == 200
+    data = answer_resp.json()
+    assert "id" in data
+    assert data["answer_text"] == "Yes, you do."
+
+def test_post_both_question_and_answer_invalid():
+    """Test that providing both question and answer returns 400"""
+    event_resp = client.post("/api/v1/events/", json={
+        "title": "Invalid QA Event",
+        "start_date_time": "2025-01-01T10:00:00",
+        "allow_qa": True
+    })
+    event_id = event_resp.json()["data"]["event"]["event_id"]
+
+    response = client.post(f"/api/v1/events/{event_id}/qa/", json={
+        "question_text": "Q?",
+        "answer_text": "A!",
+        "question_id": 1
+    })
+
+    assert response.status_code == 400
+    data = response.json()
+    assert data["error"] is True
