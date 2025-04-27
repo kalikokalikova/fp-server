@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, status, Body, Request
+from fastapi import FastAPI, Depends, status, Body, Request, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
@@ -205,3 +205,34 @@ def create_qa(event_id: int, qa_data: schemas.QACreate, request: Request, db: Se
             "trace": traceback.format_exc()
         }
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=error_response)
+
+@app.delete("/api/v1/events/{event_id}", status_code=status.HTTP_200_OK)
+def delete_event(event_id: int, db: Session = Depends(get_db)):
+    try:
+        deleted_event = crud.delete_event(db, event_id)
+        if deleted_event is None:
+            return JSONResponse(
+                status_code=status.HTTP_404_NOT_FOUND,
+                content={
+                    "status": 404,
+                    "error": True,
+                    "message": "Event not found"
+                }
+            )
+        
+        return {
+            "status": 200,
+            "error": False,
+            "message": f"Event {event_id} deleted successfully"
+        }
+    
+    except Exception as e:
+        print(f"Error deleting event: {e}")
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={
+                "status": 500,
+                "error": True,
+                "message": "An unexpected error occurred"
+            }
+        )

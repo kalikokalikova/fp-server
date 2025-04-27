@@ -111,3 +111,12 @@ def get_or_create_location(db: Session, location_data: schemas.LocationBase):
     db.commit()
     db.refresh(new_location)
     return new_location.id
+
+def delete_event(db: Session, event_id: int):
+    event = db.query(models.Event).filter(models.Event.id == event_id).first()
+    if event is None:
+        return None
+
+    db.delete(event)
+    db.commit()
+    return event
