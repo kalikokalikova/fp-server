@@ -1,6 +1,7 @@
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, or_
 from slugify import slugify
 from typing import List
+from datetime import datetime, timedelta, timezone
 
 import app.models as models, app.schemas as schemas
 
@@ -120,3 +121,28 @@ def delete_event(db: Session, event_id: int):
     db.delete(event)
     db.commit()
     return event
+
+def delete_old_events(db: Session):
+    now = datetime.now(timezone.utc)
+    threshold = now - timedelta(weeks=2)
+
+    old_events = db.query(models.Event).filter(
+        or_(
+            models.Event.end_date_time != None,
+            models.Event.end_date_time == None
+        )
+    ).filter(
+        or_(
+            models.Event.end_date_time <= threshold,
+            models.Event.end_date_time == None,
+            models.Event.start_date_time <= threshold
+        )
+    ).all()
+
+    count = 0
+    for event in old_events:
+        db.delete(event)
+        count += 1
+
+    db.commit()
+    return count
