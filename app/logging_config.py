@@ -10,5 +10,6 @@ def configure_logging():
         handlers=[
             logging.FileHandler("logs/app.log"),
             logging.StreamHandler()
-        ]
+        ],
+        force=True
     )

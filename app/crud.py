@@ -3,8 +3,11 @@ from sqlalchemy import or_
 from slugify import slugify
 from typing import List
 from datetime import datetime, timedelta, timezone
+import logging
 
 import app.models as models, app.schemas as schemas
+
+logger = logging.getLogger("app.main")
 
 def get_events(db: Session, skip:int=0, limit: int=100) -> List[schemas.EventResponse]:
     events = (
@@ -117,8 +120,10 @@ def get_or_create_location(db: Session, location_data: schemas.LocationBase):
 def delete_event(db: Session, event_id: int):
     event = db.query(models.Event).filter(models.Event.id == event_id).first()
     if event is None:
+        logger.warning(f"[CRUD] Event {event_id} not found for deletion")
         return None
 
+    logger.info(f"[CRUD] Deleting event {event.id} — {event.title}")
     db.delete(event)
     db.commit()
     return event
@@ -142,6 +147,7 @@ def delete_old_events(db: Session):
 
     count = 0
     for event in old_events:
+        logger.info(f"[Cleanup] Deleting event {event.id} — {event.title}")
         db.delete(event)
         count += 1
 

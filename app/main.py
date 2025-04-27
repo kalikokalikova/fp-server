@@ -7,9 +7,9 @@ from sqlalchemy.orm import Session
 from contextlib import asynccontextmanager
 import logging
 import traceback
+from app.logging_config import configure_logging
 import app.crud as crud, app.models as models, app.schemas as schemas
 from app.database import SessionLocal, engine, Base
-from app.logging_config import configure_logging
 
 
 models.Base.metadata.create_all(bind=engine)
@@ -20,9 +20,9 @@ async def lifespan(app: FastAPI):
     try:
         from app.crud import delete_old_events
         deleted = delete_old_events(db)
-        print(f"[Startup] Deleted {deleted} old events.")
+        logger.info(f"[Startup] Deleted {deleted} old events.")
     except Exception as e:
-        print(f"[Startup] Error cleaning up old events: {e}")
+        logger.exception("[Startup] Error cleaning up old events")
     finally:
         db.close()
 
@@ -32,6 +32,7 @@ app = FastAPI(lifespan=lifespan)
 
 configure_logging()
 logger = logging.getLogger(__name__)
+logger.info("Logging is configured and running")
 
 origins = [
     "http://localhost:5173",
@@ -229,6 +230,8 @@ def create_qa(event_id: int, qa_data: schemas.QACreate, request: Request, db: Se
 
 @app.delete("/api/v1/events/{event_id}", status_code=status.HTTP_200_OK)
 def delete_event(event_id: int, db: Session = Depends(get_db)):
+    logger.warning(f"DELETE route triggered for event {event_id}")
+
     try:
         deleted_event = crud.delete_event(db, event_id)
         if deleted_event is None:
@@ -241,8 +244,7 @@ def delete_event(event_id: int, db: Session = Depends(get_db)):
                 }
             )
         
-        logger.info(f"Event {event_id} deleted")
-
+        logger.info(f"Event {event_id} deleted via DELETE route")
         return {
             "status": 200,
             "error": False,
