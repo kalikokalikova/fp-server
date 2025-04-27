@@ -2,15 +2,34 @@ from fastapi import FastAPI, Depends, status, Body, Request, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi_utils.tasks import repeat_every
 from sqlalchemy.orm import Session
+from contextlib import asynccontextmanager
+import logging
+import traceback
 import app.crud as crud, app.models as models, app.schemas as schemas
 from app.database import SessionLocal, engine, Base
-import traceback
-from datetime import datetime
+
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    db = SessionLocal()
+    try:
+        from app.crud import delete_old_events
+        deleted = delete_old_events(db)
+        print(f"[Startup] Deleted {deleted} old events.")
+    except Exception as e:
+        print(f"[Startup] Error cleaning up old events: {e}")
+    finally:
+        db.close()
+
+    yield
+
+app = FastAPI(lifespan=lifespan)
+
+logger = logging.getLogger(__name__)
 
 origins = [
     "http://localhost:5173",

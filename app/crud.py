@@ -1,4 +1,5 @@
-from sqlalchemy.orm import Session, joinedload, or_
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import or_
 from slugify import slugify
 from typing import List
 from datetime import datetime, timedelta, timezone
