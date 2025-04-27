@@ -19,7 +19,10 @@ class Event(Base):
     slug = Column(String(255), index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
-    questions = relationship("Question", back_populates="event")
+    questions = relationship(
+        "Question", 
+        back_populates="event",
+        cascade="all, delete-orphan")
 
 class Location(Base):
     __tablename__ = "locations"
@@ -44,7 +47,10 @@ class Question(Base):
     created_at = Column(DateTime, server_default=func.now())
 
     event = relationship("Event", back_populates="questions")
-    answers = relationship("Answer", back_populates="question")
+    answers = relationship(
+        "Answer", 
+        back_populates="question",
+        cascade="all, delete-orphan")
 
 class Answer(Base):
     __tablename__ = "answers"
