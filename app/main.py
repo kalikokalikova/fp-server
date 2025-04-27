@@ -7,10 +7,25 @@ import app.crud as crud, app.models as models, app.schemas as schemas
 from app.database import SessionLocal, engine, Base
 import traceback
 from datetime import datetime
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "status": 422,
+            "error": True,
+            "message": "Validation error. Check input fields.",
+            "details": exc.errors()
+        }
+    )
 
 origins = [
     "http://localhost:5173",
