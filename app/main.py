@@ -9,6 +9,7 @@ import logging
 import traceback
 import app.crud as crud, app.models as models, app.schemas as schemas
 from app.database import SessionLocal, engine, Base
+from app.logging_config import configure_logging
 
 
 models.Base.metadata.create_all(bind=engine)
@@ -29,6 +30,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+configure_logging()
 logger = logging.getLogger(__name__)
 
 origins = [
@@ -239,6 +241,8 @@ def delete_event(event_id: int, db: Session = Depends(get_db)):
                 }
             )
         
+        logger.info(f"Event {event_id} deleted")
+
         return {
             "status": 200,
             "error": False,
@@ -246,6 +250,7 @@ def delete_event(event_id: int, db: Session = Depends(get_db)):
         }
     
     except Exception as e:
+        logger.exception("Error deleting event")
         print(f"Error deleting event: {e}")
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

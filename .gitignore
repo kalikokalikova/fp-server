@@ -79,3 +79,7 @@ __pycache__/
 ../fp-venv/
 
 .DS_Store
+
+# Log files
+logs/
+*.log
