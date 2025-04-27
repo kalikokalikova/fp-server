@@ -143,7 +143,3 @@ def test_get_or_create_location_retrieves_existing_location(db):
     location_id = crud.get_or_create_location(db, location_data)
 
     assert location_id == existing_location.id
-
-#test_create_event_with_invalid_location
-#test_create_event_without_title
-#test_get_event_with_invalid_location
