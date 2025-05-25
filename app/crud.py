@@ -52,9 +52,9 @@ def get_event_by_id(db: Session, event_id: int) -> schemas.EventResponse:
                         id=a.id,
                         answer_text=a.answer_text,
                         created_at=a.created_at
-                    ) for a in q.answers
+                    ) for a in sorted(q.answers, key=lambda x: x.created_at, reverse=True)
                 ] if q.answers else None
-            ) for q in event.questions
+            ) for q in sorted(event.questions, key=lambda x: x.created_at, reverse=True)
         ]
 
     response = schemas.EventResponse(
