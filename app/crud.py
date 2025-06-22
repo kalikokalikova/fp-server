@@ -95,12 +95,12 @@ def get_or_create_location(db: Session, location_data: schemas.LocationBase):
     new_location_data = location_data.model_dump(by_alias=False)
 
     #placeholders for missing fields
-    #will need to return to this because this API is so damn inconsistent
     default_values = {
-        "name": new_location_data.get("address_1", "Unnamed Location"),
-        "city": "Unknown",
-        "state": "Unknown",
-        "zip": "00000"
+        "name": "",
+        "address_1": "",
+        "city": "",
+        "state": "",
+        "zip": ""
     }
     for field, default in default_values.items():
         new_location_data[field] = new_location_data.get(field) or default
