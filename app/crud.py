@@ -96,7 +96,6 @@ def get_or_create_location(db: Session, location_data: schemas.LocationBase):
 
     #placeholders for missing fields
     default_values = {
-        "name": "",
         "address_1": "",
         "city": "",
         "state": "",
